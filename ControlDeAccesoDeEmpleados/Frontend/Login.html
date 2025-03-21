@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de acceso de empleados</title>
+    <title>CAE Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='LoginStyle.css')}}">
     <script> scr="{{ url_for('static', filename='LoginScript.js')}}"</script>
 </head>
 <body>
-    <h1>Bienvenidos al Login de empleados</h1>
-    <p>Por favor ingrese a la plataforma</p>
+    <h2>Iniciar Sesion</h2>
+    <form action="{{ url_for('login')}}" method="post">
+        <label for="num_tarjeta">Numero de la tarjeta:</label>
+        <input type="text" name="num_tarjeta" required>
+        <button type="submit">Ingresar</button>
+    </form>
+    <p>¿Eres nuevo por aqui?<a href="{{url_for('registro')}}">Resgistrate</a></p>
 </body>
 </html>
