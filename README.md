@@ -1,3 +1,3 @@
 # CAE_Grupo3
 
-- Hola a todos.
+- Programa para controlar el acceso de empleados a una empresa.
