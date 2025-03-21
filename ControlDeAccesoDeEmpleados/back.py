@@ -9,23 +9,19 @@ def home():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
-    if request.method == 'POST':
-        num_tarjeta = request.form['num_tarjeta']
-        nombre = request.form['nombre']
-        
-        if num_tarjeta in empleados:
-            return "Error: El numero de su tarjeta ya tiene dueño."
-    
-        empleados[num_tarjeta] = nombre
-        return redirect(url_for('home'))
-    return render_template('Registro.html')
+    num_tarjeta = request.args.get('num_tarjeta')
+    if num_tarjeta:
+        empleados[num_tarjeta] = {'num_tarjeta':num_tarjeta}
+        print("Empleados registrados:", empleados)
+        return f"empleado con tarjeta {num_tarjeta} registrado correctamente."
+    return "Error: Tiene que poner el numero de la tarjeta.", 400
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
-    num_terjeta = request.form['num_tarjeta']
+    num_tarjeta = request.form['num_tarjeta']
 
-    if num_terjeta in empleados:
-        session['usuario'] = empleados['num_tarjeta']
+    if num_tarjeta in empleados:
+        session['usuario'] = empleados[num_tarjeta]
         return redirect(url_for('inicio'))
     return "Error: Tarjeta no registrada"
 
