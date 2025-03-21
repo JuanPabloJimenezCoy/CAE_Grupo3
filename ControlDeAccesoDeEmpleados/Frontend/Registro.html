@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+    <h2>Registro</h2>
+    <form action="{{url_for('registro')}}">
+        <label for="nombre">Nombre</label>
+        <input type="text" nombre="nombre"required>
+
+        <label for="num_tarjeta">Numero de tarjeta</label>
+        <input type="text" name="num_tarjeta" required>
+
+        <button type="submit">Registrar</button>
+    </form>
+    <p>¿Ya estas registrado?<a href="{{url_for('home')}}">Inicia Sesion</a></p>
+</body>
+</html>
