@@ -3,13 +3,14 @@ name: Release Please
 on:
   push:
     branches:
-      - main  # o 'master' según el nombre de tu rama principal
+      - main
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Release Please
-        uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} /* hola */
+          release-type: python
+          token: ${{ secrets.GITHUB_TOKEN }}
