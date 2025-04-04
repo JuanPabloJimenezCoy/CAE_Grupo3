@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "control-de-acceso"
+version = "0.1.0"
+description = "Sistema de control de acceso de empleados en Flask"
+authors = [
+    {name = "Grupo3", email = "Grupo3@gmial.com"}
+]
+license = {text = "MIT"}
+dependencies = [
+    "flask"
+]
