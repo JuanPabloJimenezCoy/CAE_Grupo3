@@ -11,26 +11,45 @@ def home():
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
-        num_tarjeta = request.form.get('num_tarjeta')
+        metodo = request.form.get('metodo')
         nombre = request.form.get('nombre')
 
-        if num_tarjeta and nombre:
-            empleados[num_tarjeta] = {'num_tarjeta': num_tarjeta, 'nombre': nombre}
-            print("Empleado registrado:", empleados)
-            return redirect(url_for('login'))
-        return "Error: Debes completar todos los campos.", 400
+        if metodo == 'tarjeta':
+            num_tarjeta = request.form.get('num_tarjeta')
+            if num_tarjeta and nombre:
+                empleados[num_tarjeta] = {'tipo': 'tarjeta', 'num_tarjeta': num_tarjeta, 'nombre': nombre}
+                print("Empleado registrado con tarjeta:", empleados)
+                return redirect(url_for('login'))
+            return "Error: Debes completar todos los campos.", 400
+
+        elif metodo == 'pin':
+            pin = request.form.get('pin')
+            if pin and nombre and pin.isdigit() and len(pin) == 6:
+                empleados[pin] = {'tipo': 'pin', 'pin': pin, 'nombre': nombre}
+                print("Empleado registrado con PIN:", empleados)
+                return redirect(url_for('login'))
+            return "Error: El PIN debe tener exactamente 6 dígitos.", 400
 
     return render_template('Registro.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        num_tarjeta = request.form.get('num_tarjeta')
+        metodo = request.form.get('metodo')
+        
+        if metodo == 'tarjeta':
+            num_tarjeta = request.form.get('num_tarjeta')
+            if num_tarjeta in empleados and empleados[num_tarjeta]['tipo'] == 'tarjeta':
+                session['usuario'] = empleados[num_tarjeta]
+                return redirect(url_for('inicio'))
+            return "Error: Tarjeta no registrada", 400
 
-        if num_tarjeta in empleados:
-            session['usuario'] = empleados[num_tarjeta]
-            return redirect(url_for('inicio'))
-        return "Error: Tarjeta no registrada", 400
+        elif metodo == 'pin':
+            pin = request.form.get('pin')
+            if pin in empleados and empleados[pin]['tipo'] == 'pin':
+                session['usuario'] = empleados[pin]
+                return redirect(url_for('inicio'))
+            return "Error: PIN no registrado", 400
 
     return render_template("Login.html")
 
