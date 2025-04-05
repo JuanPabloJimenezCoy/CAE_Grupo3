@@ -5,14 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CAE Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+
+    <script>
+        function mostrarCampos() {
+            const metodo = document.getElementById('metodo').value;
+            document.getElementById('campo_tarjeta').style.display = (metodo === 'tarjeta') ? 'block' : 'none';
+            document.getElementById('campo_pin').style.display = (metodo === 'pin') ? 'block' : 'none';
+        }
+    </script>
 </head>
 <body>
-    <h2>Iniciar Sesion</h2>
-    <form action="{{ url_for('login')}}" method="post">
-        <label for="num_tarjeta">Numero de la tarjeta:</label>
-        <input type="text" name="num_tarjeta" required>
+    <h2>Iniciar Sesión</h2>
+
+    <form action="{{ url_for('login') }}" method="post">
+        <label for="metodo">Método de acceso</label>
+        <select name="metodo" id="metodo" onchange="mostrarCampos()" required>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="pin">PIN</option>
+        </select>
+
+        <!-- Campo para tarjeta -->
+        <div id="campo_tarjeta">
+            <label for="num_tarjeta">Número de la tarjeta:</label>
+            <input type="text" name="num_tarjeta">
+        </div>
+
+        <!-- Campo para PIN -->
+        <div id="campo_pin" style="display: none;">
+            <label for="pin">PIN (6 dígitos):</label>
+            <input type="text" name="pin" pattern="\d{6}" maxlength="6">
+        </div>
+
         <button type="submit">Ingresar</button>
     </form>
-    <p>¿Eres nuevo por aqui?<a href="{{url_for('registro')}}">Resgistrate</a></p>
+
+    <p>¿Eres nuevo por aquí? <a href="{{url_for('registro')}}">Regístrate</a></p>
 </body>
 </html>
