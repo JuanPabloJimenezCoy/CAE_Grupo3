@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.1.0...v0.2.0) (2025-04-05)
+
+
+### Features
+
+* update back.py ([b764a21](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/b764a21138bbfc58417469d7cd67af33e5b706bc))
+
 ## 0.1.0 (2025-04-04)
 
 
