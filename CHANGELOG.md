@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.2.0...v0.3.0) (2025-04-06)
+
+
+### Features
+
+* update Login.html and Registro.html ([c842945](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/c8429450e2381b4691ba25baefe9490ba2b35933))
+
 ## [0.2.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.1.0...v0.2.0) (2025-04-05)
 
 
