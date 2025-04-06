@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenido</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://kit.fontawesome.com/a2e0c51c53.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <h2>Bienvenido, {{usuario}}</h2>
-    <p>Tu registro fue exitoso.</p>
-    <a href="{{url_for('salir')}}">Salir</a>
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-smile"></i> ¡Bienvenido, {{ usuario }}!</h2>
+            <p>Tu acceso fue exitoso a la plataforma.</p>
+            <a href="{{ url_for('salir') }}" class="btn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+        </div>
+    </div>
 </body>
 </html>

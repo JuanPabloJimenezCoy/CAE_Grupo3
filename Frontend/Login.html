@@ -1,44 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAE Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
-
-    <script>
-        function mostrarCampos() {
-            const metodo = document.getElementById('metodo').value;
-            document.getElementById('campo_tarjeta').style.display = (metodo === 'tarjeta') ? 'block' : 'none';
-            document.getElementById('campo_pin').style.display = (metodo === 'pin') ? 'block' : 'none';
-        }
-    </script>
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://kit.fontawesome.com/a2e0c51c53.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <h2>Iniciar Sesión</h2>
-
     <form action="{{ url_for('login') }}" method="post">
-        <label for="metodo">Método de acceso</label>
-        <select name="metodo" id="metodo" onchange="mostrarCampos()" required>
+        <h2><i class="fas fa-lock"></i> Iniciar Sesión</h2>
+
+        <label for="metodo"><i class="fas fa-exchange-alt"></i> Método de inicio</label>
+        <select name="metodo" id="metodo" onchange="cambiarMetodo()">
             <option value="tarjeta">Tarjeta</option>
             <option value="pin">PIN</option>
         </select>
 
-        <!-- Campo para tarjeta -->
-        <div id="campo_tarjeta">
-            <label for="num_tarjeta">Número de la tarjeta:</label>
+        <div id="campoTarjeta">
+            <label for="num_tarjeta"><i class="fas fa-id-card"></i> Número de tarjeta</label>
             <input type="text" name="num_tarjeta">
         </div>
 
-        <!-- Campo para PIN -->
-        <div id="campo_pin" style="display: none;">
-            <label for="pin">PIN (6 dígitos):</label>
-            <input type="text" name="pin" pattern="\d{6}" maxlength="6">
+        <div id="campoPin" style="display: none;">
+            <label for="pin"><i class="fas fa-key"></i> PIN</label>
+            <input type="password" name="pin" maxlength="6" pattern="\d{6}">
         </div>
 
-        <button type="submit">Ingresar</button>
+        <button type="submit"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
+        <p>¿Eres nuevo? <a href="{{ url_for('registro') }}">Regístrate</a></p>
     </form>
 
-    <p>¿Eres nuevo por aquí? <a href="{{url_for('registro')}}">Regístrate</a></p>
+    <script>
+        function cambiarMetodo() {
+            const metodo = document.getElementById('metodo').value;
+            document.getElementById('campoTarjeta').style.display = metodo === 'tarjeta' ? 'block' : 'none';
+            document.getElementById('campoPin').style.display = metodo === 'pin' ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>
