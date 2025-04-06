@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.3.0...v0.4.0) (2025-04-06)
+
+
+### Features
+
+* update style.css ([90db851](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/90db8519b0570672678297aaad118e7611f66c14))
+
 ## [0.3.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.2.0...v0.3.0) (2025-04-06)
 
 
