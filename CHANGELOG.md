@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.5.0...v0.6.0) (2025-04-15)
+
+
+### Features
+
+* update back.py, Login.html, style.css, and create InicioAdministrador.html, admin_style.css ([1d77914](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/1d77914e825ff02b1f3ecb44f091c4c4667d39bb))
+
 ## [0.5.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.4.0...v0.5.0) (2025-04-06)
 
 
