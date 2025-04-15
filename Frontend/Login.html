@@ -15,6 +15,7 @@
         <select name="metodo" id="metodo" onchange="cambiarMetodo()">
             <option value="tarjeta">Tarjeta</option>
             <option value="pin">PIN</option>
+            <option value="admin">Administrador</option>
         </select>
 
         <div id="campoTarjeta">
@@ -27,6 +28,11 @@
             <input type="password" name="pin" maxlength="6" pattern="\d{6}">
         </div>
 
+        <div id="campoAdmin" style="display: none;">
+            <label for="codigo"><i class="fas fa-user-shield"></i> Código de administrador</label>
+            <input type="password" name="codigo" maxlength="4">
+        </div>
+
         <button type="submit"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
         <p>¿Eres nuevo? <a href="{{ url_for('registro') }}">Regístrate</a></p>
     </form>
@@ -36,7 +42,11 @@
             const metodo = document.getElementById('metodo').value;
             document.getElementById('campoTarjeta').style.display = metodo === 'tarjeta' ? 'block' : 'none';
             document.getElementById('campoPin').style.display = metodo === 'pin' ? 'block' : 'none';
+            document.getElementById('campoAdmin').style.display = metodo === 'admin' ? 'block' : 'none';
         }
+
+        // Ejecutar al cargar la página
+        window.onload = cambiarMetodo;
     </script>
 </body>
 </html>
