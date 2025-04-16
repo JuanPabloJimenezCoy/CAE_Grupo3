@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.6.0...v0.7.0) (2025-04-16)
+
+
+### Features
+
+* update incio.html and create inicio_style.css ([9aee14b](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/9aee14b788ced2ae55f16eaf03aa7bf5f7fc64ae))
+
 ## [0.6.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.5.0...v0.6.0) (2025-04-15)
 
 
