@@ -2,16 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenido</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='inicio_style.css') }}">
-    <script src="https://kit.fontawesome.com/a2e0c51c53.js" crossorigin="anonymous"></script>
+    <title>Inicio Empleado</title>
 </head>
 <body>
-    <div class="container">
-        <h2><i class="fas fa-smile"></i> ¡Bienvenido, {{ usuario }}!</h2>
-        <p>Tu acceso fue exitoso a la plataforma.</p>
-        <a href="{{ url_for('logout') }}" class="btn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+    <h1>Bienvenido/a</h1>
+    
+    <!-- Versión con objeto usuario -->
+    <div class="user-info">
+        <p>Usuario: {{ usuario.nombre_completo }}</p>
+        <p>Hora de ingreso: {{ usuario.hora_login }}</p>
     </div>
+    <a href="{{url_for('logout')}}">Salir</a>
 </body>
 </html>
