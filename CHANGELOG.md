@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.8.0...v0.9.0) (2025-04-17)
+
+
+### Features
+
+* update back.py, Inicio.html and Login.html ([e60fbaa](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/e60fbaab48cb4211467d241b9aba9c0e19c63860))
+
 ## [0.8.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.7.0...v0.8.0) (2025-04-16)
 
 
