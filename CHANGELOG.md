@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.7.0...v0.8.0) (2025-04-16)
+
+
+### Features
+
+* update back.py, Login.html, Registro.html and create db.py, .env ([3c6f5f2](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/3c6f5f2c881d329b46d7faab80a7bdf5f4429899))
+
 ## [0.7.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.6.0...v0.7.0) (2025-04-16)
 
 
