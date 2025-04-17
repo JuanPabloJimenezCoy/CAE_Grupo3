@@ -6,12 +6,20 @@
 </head>
 <body>
     <h2>Iniciar Sesión</h2>
+    
+    {% if error %}
+    <div style="color: red;">{{ error }}</div>
+    {% endif %}
+    
     <form method="POST" action="{{ url_for('login') }}">
         <label for="credencial">Credencial:</label><br>
         <input type="text" name="credencial" id="credencial" required><br><br>
         <button type="submit">Ingresar</button>
     </form>
+    
     <br>
-    <a href="{{ url_for('registro') }}">¿No estás registrado? Regístrate aquí</a>
+    <div>
+        <a href="{{ url_for('registro') }}">¿No estás registrado? Regístrate aquí</a>
+    </div>
 </body>
 </html>
