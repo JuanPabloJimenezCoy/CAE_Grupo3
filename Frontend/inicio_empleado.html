@@ -6,12 +6,10 @@
 </head>
 <body>
     <h1>Bienvenido/a</h1>
-    
-    <!-- Versión con objeto usuario -->
     <div class="user-info">
         <p>Usuario: {{ usuario.nombre_completo }}</p>
         <p>Hora de ingreso: {{ usuario.hora_login }}</p>
     </div>
-    <a href="{{url_for('logout')}}">Salir</a>
+    <a href="{{url_for('auth.logout')}}">Salir</a>
 </body>
 </html>

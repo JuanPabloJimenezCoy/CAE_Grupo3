@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del Administrador</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido, {{ usuario.nombre }}</h1>
+        <p>Rol: Administrador</p>
+
+        <!-- Nuevo botón de asignación -->
+        <div style="margin-bottom: 20px;">
+            <a href="{{ url_for('admin.asignar_empleados') }}" class="button-link">
+                + Asignar empleados a supervisores
+            </a>
+        </div>
+
+        <h2>Lista de empleados registrados</h2>
+
+        {% if empleados %}
+        <table border="1" class="empleados-table">
+            <thead>
+                <tr>
+                    <th>Credencial</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Cargo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in empleados %}
+                <tr>
+                    <td>{{ emp[0] }}</td>
+                    <td>{{ emp[1] }}</td>
+                    <td>{{ emp[2] }}</td>
+                    <td>{{ emp[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay empleados registrados.</p>
+        {% endif %}
+
+        <div class="logout-link">
+            <a href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,118 +1,57 @@
-/* Resetear estilos predeterminados del navegador */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Fondo y tipografía general */
 body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(to right, #83a4d4, #b6fbff); /* Fondo atractivo */
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
     padding: 20px;
 }
 
-/* Estilo del formulario */
-form {
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Sombra suave para darle profundidad */
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+.container {
+    max-width: 900px;
+    margin: auto;
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* Estilo del título */
-h2 {
-    text-align: center;
-    margin-bottom: 1rem;
+h1, h2 {
     color: #333;
-    font-size: 1.8rem;
-    font-weight: bold;
 }
 
-/* Estilo para las etiquetas */
-label {
-    font-weight: bold;
-    color: #555;
+.empleados-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-/* Estilo de los inputs */
-input {
-    padding: 12px;
+.empleados-table th, .empleados-table td {
     border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 1rem;
-    transition: all 0.3s ease-in-out;
+    padding: 10px;
+    text-align: left;
 }
 
-input:focus {
-    outline: none;
-    border-color: #3bb9db; /* Cambio de color al enfocarse */
-    box-shadow: 0 0 5px rgba(59, 185, 219, 0.5); /* Efecto de sombra suave */
+.empleados-table th {
+    background-color: #f5f5f5;
 }
 
-/* Estilo del botón */
-button {
-    padding: 12px;
-    background-color: #3bb9db;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+.logout-link {
+    margin-top: 30px;
 }
 
-button:hover {
-    background-color: #269ec4; /* Color de fondo más oscuro */
-    transform: translateY(-3px); /* Efecto de elevación */
-}
-
-/* Estilo del texto debajo del formulario */
-p {
-    text-align: center;
-    font-size: 0.95rem;
-}
-
-/* Estilo de los enlaces */
-a {
-    color: #269ec4;
+.logout-link a {
+    color: red;
     text-decoration: none;
+}
+
+.button-link {
+    display: inline-block;
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 8px;
     font-weight: bold;
 }
 
-a:hover {
-    text-decoration: underline; /* Subrayado al pasar el ratón */
-}
-
-/* Estilo para los iconos */
-label i {
-    margin-right: 8px;
-    color: #3bb9db;
-}
-
-/* Diseño responsive para pantallas pequeñas */
-@media (max-width: 480px) {
-    form {
-        padding: 1.5rem;
-        max-width: 90%; /* Adaptar el tamaño del formulario */
-    }
-
-    h2 {
-        font-size: 1.5rem;
-    }
-
-    input,
-    button {
-        font-size: 0.95rem; /* Ajustar tamaño de texto */
-    }
+.button-link:hover {
+    background-color: #0056b3;
 }

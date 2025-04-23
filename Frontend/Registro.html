@@ -1,18 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Registro</title>
+    <meta charset="UTF-8">
+    <title>Registro de usuario</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h2>Registro de Empleado</h2>
-    <form method="POST">
-        <label>Credencial:</label><input type="number" name="credencial" required><br>
-        <label>Nombre:</label><input type="text" name="nombre" required><br>
-        <label>Apellido:</label><input type="text" name="apellido" required><br>
-        <label>Cargo:</label><input type="text" name="cargo"><br>
-        <label>Horario:</label><input type="text" name="horario"><br>
-        <input type="submit" value="Registrar">
-    </form>
-    <a href="/">Volver al Login</a>
+    <div class="container">
+        <h1>Registrar nuevo usuario</h1>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <label for="rol">Tipo de usuario:</label>
+            <select name="rol" id="rol" required>
+                <option value="empleado">Empleado</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="admin">Administrador</option>
+            </select><br><br>
+
+            <label>Nombre:</label><br>
+            <input type="text" name="nombre" required><br><br>
+
+            <label>Apellido:</label><br>
+            <input type="text" name="apellido" required><br><br>
+
+            <label>PIN (opcional):</label><br>
+            <input type="password" name="pin"><br><br>
+
+            <!-- Tarjeta: un solo campo compartido -->
+            <div id="campo-tarjeta" style="display: none;">
+                <label>ID de Tarjeta:</label><br>
+                <input type="text" name="tarjeta" id="tarjeta"><br><br>
+            </div>
+
+            <!-- Solo visible para empleados -->
+            <div id="campos-empleado" style="display: none;">
+                <label>Credencial:</label><br>
+                <input type="text" name="credencial"><br><br>
+
+                <label>Cargo:</label><br>
+                <input type="text" name="cargo"><br><br>
+
+                <label>Horario:</label><br>
+                <input type="text" name="horario"><br><br>
+            </div>
+
+            <button type="submit">Registrar</button>
+        </form>
+
+        <a href="{{ url_for('auth.login') }}">← Volver al login</a>
+    </div>
+
+    <script>
+        function mostrarCampos() {
+            const rol = document.getElementById("rol").value;
+
+            // Mostrar campos según tipo
+            document.getElementById("campos-empleado").style.display = rol === "empleado" ? "block" : "none";
+            document.getElementById("campo-tarjeta").style.display = "block"; // Siempre se muestra
+        }
+
+        window.addEventListener("DOMContentLoaded", function () {
+            mostrarCampos();
+            document.getElementById("rol").addEventListener("change", mostrarCampos);
+        });
+    </script>
 </body>
 </html>

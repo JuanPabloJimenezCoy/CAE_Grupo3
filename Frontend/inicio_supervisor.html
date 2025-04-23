@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del Supervisor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido, {{ usuario.nombre }}</h1>
+        <p>Rol: Supervisor</p>
+        <p>Hora de ingreso: {{ usuario.hora_login }}</p>
+
+        <h2>Empleados a tu cargo</h2>
+        {% if empleados %}
+        <table border="1" class="empleados-table">
+            <thead>
+                <tr>
+                    <th>Credencial</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Cargo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in empleados %}
+                <tr>
+                    <td>{{ emp[0] }}</td>
+                    <td>{{ emp[1] }}</td>
+                    <td>{{ emp[2] }}</td>
+                    <td>{{ emp[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No tienes empleados asignados todavía.</p>
+        {% endif %}
+
+        <div class="logout-link">
+            <a href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+        </div>
+    </div>
+</body>
+</html>
