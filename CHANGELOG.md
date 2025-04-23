@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.10.0...v0.11.0) (2025-04-23)
+
+
+### Features
+
+* update .env, back.py, db.py, login.html, registro.html, style.css, create __init__.py, admin_routes.py, auth_routes.py, empleado_routes.py, supervisor_routes.py, helpers.py, asignar_empleados.html, inicio_empleado.html, inicio_administrador.html, iniciosupervisor.html and delete Inicio.html, InicioAdministrador.html, admin_style.css, inicio_style.css ([9d9328b](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/9d9328bcb9e18852984a816b523e5a7a2e6f64c5))
+
 ## [0.10.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.9.0...v0.10.0) (2025-04-17)
 
 
