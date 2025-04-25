@@ -1,30 +1,78 @@
 # Control de Acceso de Empleados (CAE)
-Este es un sistema de autenticación básico desarrollado en Flask que permite el registro e inicio de sesión de empleados mediante un número de tarjeta.
 
-# Características
--	Registro de usuarios con nombre y número de tarjeta.
--	Inicio de sesión mediante el número de tarjeta.
--	Uso de sesiones para mantener la autenticación.
--	Posibilidad de cerrar sesión.
+Sistema web de control de acceso para empleados, supervisores y administradores, desarrollado con **Python, Flask y PostgreSQL**, que permite gestionar registros de entrada y salida, asignar horarios, controlar asistencia y generar reportes.
 
-# Tecnologías utilizadas
--	Python 3
--	Flask
--	HTML/CSS
+---
+
+## Características Principales
+
+- Inicio de sesión con número de documento.
+- Redirección automática a panel según el rol: **Empleado**, **Supervisor** o **Administrador**.
+- Registro de entrada y salida con **validación de horario** (solo para empleados).
+- Registro de entrada mediante:
+  - PIN
+  - Tarjeta
+  - Código QR personalizado
+- Asignación de horarios por día y hora.
+- Solicitud de tiempo extra con carga de justificativos.
+- Supervisores aprueban/rechazan solicitudes y envían avisos con archivo adjunto.
+- Descarga de archivos (justificativos, avisos).
+- Visualización de historial personal de asistencia.
+- Generación de reportes con Pandas + Excel.
+- Asignación de empleados a supervisores.
+- Registro de retrasos, salidas tempranas o fuera de horario.
+
+---
+
+## Tecnologías Utilizadas
+
+- **Backend:** Python 3, Flask, PostgreSQL (Neon), Jinja2
+- **Frontend:** HTML5, Tailwind CSS, jQuery
+- **Librerías clave:**
+  - `psycopg2-binary`
+  - `python-dotenv`
+  - `pytz`
+  - `qrcode[pil]`
+  - `pandas`, `openpyxl`
+
+---
 
 # Instalar las dependencias
 -	pip install flask
+-   pip install flask
+-   pip install psycopg2-binary
+-   pip install python-dotenv
+-   pip install pytz
+-   pip install qrcode[pil]
+-   pip install pandas
+-   pip install openpyxl
+
+---
 
 # Ejecutar la aplicación
 - 	python back.py
 
-# Uso
--	Al iniciar la aplicación, se muestra el formulario de inicio de sesión.
--	Si el usuario no está registrado, puede ir a la página de registro.
--	En la página de registro, el usuario ingresa su nombre y número de tarjeta.
--	Luego del registro, el usuario puede iniciar sesión con su número de tarjeta.
--	Si la tarjeta está registrada, se redirige a la página de bienvenida.
--	El usuario puede cerrar sesión cuando lo desee.
+---
+
+## Funcionalidades por Rol
+
+### Empleado
+- Registrar entrada/salida dentro del horario.
+- Escanear QR para registrar entrada.
+- Ver historial personal y retrasos.
+- Solicitar tiempo extra con justificativo.
+
+### Supervisor
+- Visualizar y aprobar/rechazar solicitudes.
+- Enviar avisos con archivos adjuntos.
+- Ver lista de empleados asignados.
+
+### Administrador
+- Asignar horarios a usuarios.
+- Asignar empleados a supervisores.
+- Control total del sistema.
+
+---
 
 # Licencia
 -	Este proyecto está bajo la licencia MIT.
