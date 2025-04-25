@@ -1,0 +1,29 @@
+<h2>Asignar empleados a un supervisor</h2>
+
+<form method="POST">
+  <label for="supervisor">Supervisor:</label>
+  <select name="supervisor_id" required>
+    {% for supervisor in supervisores %}
+      <option value="{{ supervisor[0] }}">{{ supervisor[1] }} {{ supervisor[2] }}</option>
+    {% endfor %}
+  </select><br><br>
+
+  <label>Empleados:</label><br>
+  {% for empleado in empleados %}
+    <input type="checkbox" name="empleado_ids" value="{{ empleado[0] }}">
+    {{ empleado[1] }} {{ empleado[2] }}<br>
+  {% endfor %}
+
+  <br>
+  <button type="submit">Asignar</button>
+</form>
+
+{% if mensaje %}
+  <p style="color:green;">{{ mensaje }}</p>
+{% elif error %}
+  <p style="color:red;">{{ error }}</p>
+{% endif %}
+
+<a href="{{ url_for('main.admin_panel') }}">
+  <button>Volver</button>
+</a>

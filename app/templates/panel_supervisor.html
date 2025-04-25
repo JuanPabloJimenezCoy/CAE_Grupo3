@@ -1,0 +1,26 @@
+<h2>Panel del Supervisor</h2>
+<p>Bienvenido supervisor.</p>
+
+<a href="{{ url_for('main.vista_registro_entrada_supervisor') }}">
+  <button>Registrar entrada</button>
+</a><br><br>
+
+<a href="{{ url_for('main.vista_registro_salida_supervisor') }}">
+  <button>Registrar salida</button>
+</a><br><br>
+
+<a href="{{ url_for('main.ver_empleados_asignados') }}">
+  <button>Ver empleados a cargo</button>
+</a><br><br>
+
+<a href="{{ url_for('main.ver_retrasos') }}">
+  <button>Ver reporte de retrasos</button>
+</a><br><br>
+
+<a href="{{ url_for('main.revisar_tiempo_extra') }}">
+  <button>Revisar solicitudes de tiempo extra</button>
+</a><br><br>
+
+<a href="{{ url_for('main.login') }}">
+  <button>Salir</button>
+</a>

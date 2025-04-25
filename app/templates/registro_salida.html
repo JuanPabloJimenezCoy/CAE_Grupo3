@@ -1,0 +1,35 @@
+<h2>Registro de Salida</h2>
+
+<form method="POST">
+  <label>Método de verificación:</label><br>
+  <input type="radio" name="metodo" value="pin" required> PIN<br>
+  <input type="radio" name="metodo" value="tarjeta"> Tarjeta<br><br>
+
+  <label for="valor">Ingresa tu PIN o ID de Tarjeta:</label>
+  <input type="text" name="valor" required><br><br>
+
+  <button type="submit">Registrar Salida</button>
+</form>
+
+<a href="{{ url_for('main.ver_mi_qr') }}">
+  <button>Registrar salida con QR</button>
+</a><br><br>
+
+{% if mensaje %}
+  <p style="color:green;">{{ mensaje }}</p>
+{% elif error %}
+  <p style="color:red;">{{ error }}</p>
+{% endif %}
+
+{% set rol = session.get('rol') %}
+<a href="{% if rol == 'empleado' %}
+              {{ url_for('main.empleado_panel') }}
+          {% elif rol == 'supervisor' %}
+              {{ url_for('main.supervisor_panel') }}
+          {% elif rol == 'administrador' %}
+              {{ url_for('main.admin_panel') }}
+          {% else %}
+              {{ url_for('main.login') }}
+          {% endif %}">
+  <button>Volver al panel</button>
+</a>

@@ -1,0 +1,27 @@
+<h2>Horarios asignados</h2>
+
+{% for h in horarios %}
+  <form method="POST" style="border:1px solid #ccc; padding:10px; margin-bottom:15px;">
+    <strong>{{ h[1] }} {{ h[2] }}</strong><br>
+    <input type="hidden" name="empleado_id" value="{{ h[0] }}">
+
+    Hora de entrada:
+    <input type="time" name="hora_entrada" value="{{ h[3] }}" required><br>
+
+    Hora de salida:
+    <input type="time" name="hora_salida" value="{{ h[4] }}" required><br>
+
+    Días laborales:<br>
+    {% for letra, dia in [('l', 'Lunes'), ('m', 'Martes'), ('w', 'Miércoles'), ('j', 'Jueves'), ('v', 'Viernes'), ('s', 'Sábado'), ('d', 'Domingo')] %}
+      <input type="checkbox" name="dias_laborales" value="{{ letra }}"
+             {% if letra in h[5] %}checked{% endif %}> {{ dia }}<br>
+    {% endfor %}
+
+    <br>
+    <button type="submit">Actualizar horario</button>
+  </form>
+{% endfor %}
+
+<a href="{{ url_for('main.admin_panel') }}">
+  <button>Volver al panel</button>
+</a>

@@ -1,0 +1,34 @@
+<h2>Solicitudes de tiempo extra</h2>
+
+{% if solicitudes %}
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>Empleado</th>
+      <th>Fecha</th>
+      <th>Horario</th>
+      <th>Motivo</th>
+      <th>Justificativo</th>
+    </tr>
+    {% for s in solicitudes %}
+    <tr>
+      <td>{{ s[1] }} {{ s[2] }}</td>
+      <td>{{ s[3] }}</td>
+      <td>{{ s[4] }} - {{ s[5] }}</td>
+      <td>{{ s[6] }}</td>
+      <td>
+        {% if s[7] %}
+          <a href="{{ url_for('main.descargar_justificativo', filename=s[7]) }}">Descargar</a>
+        {% else %}
+          Sin archivo
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+{% else %}
+  <p>No hay solicitudes registradas.</p>
+{% endif %}
+
+<a href="{{ url_for('main.supervisor_panel') }}">
+  <button>Volver al panel</button>
+</a>

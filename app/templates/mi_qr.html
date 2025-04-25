@@ -1,0 +1,21 @@
+<h2>Código QR para registrar entrada</h2>
+
+<p>Escanéalo con la cámara de la entrada para registrar tu ingreso o salida automáticamente.</p>
+
+<img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Código">
+
+<br><br>
+<a download="qr_{{ documento }}.png" href="data:image/png;base64,{{ qr_base64 }}">
+  <button>Descargar QR</button>
+</a>
+
+<br><br>
+<a href="{% if session['rol'] == 'empleado' %}
+              {{ url_for('main.empleado_panel') }}
+          {% elif session['rol'] == 'supervisor' %}
+              {{ url_for('main.supervisor_panel') }}
+          {% elif session['rol'] == 'administrador' %}
+              {{ url_for('main.admin_panel') }}
+          {% endif %}">
+  <button>Volver al panel</button>
+</a>

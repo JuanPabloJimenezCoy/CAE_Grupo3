@@ -1,0 +1,28 @@
+<h2>Solicitar tiempo extra</h2>
+
+<form method="POST" enctype="multipart/form-data">
+  <label>Fecha:</label>
+  <input type="date" name="fecha" required><br><br>
+
+  <label>Hora de inicio:</label>
+  <input type="time" name="hora_inicio" required><br><br>
+
+  <label>Hora de fin:</label>
+  <input type="time" name="hora_fin" required><br><br>
+
+  <label>Motivo:</label><br>
+  <textarea name="motivo" rows="4" cols="50"></textarea><br><br>
+
+  <label>Adjuntar justificativo (PDF, imagen, Word...):</label>
+  <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"><br><br>
+
+  <button type="submit">Enviar solicitud</button>
+</form>
+
+{% if mensaje %}
+  <p style="color:green;">{{ mensaje }}</p>
+{% endif %}
+
+<a href="{{ url_for('main.empleado_panel') }}">
+  <button>Volver al panel</button>
+</a>

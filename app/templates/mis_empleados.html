@@ -1,0 +1,15 @@
+<h2>Mis empleados asignados</h2>
+
+{% if empleados %}
+  <ul>
+    {% for emp in empleados %}
+      <li>{{ emp[0] }} {{ emp[1] }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No tienes empleados asignados.</p>
+{% endif %}
+
+<a href="{{ url_for('main.supervisor_panel') }}">
+  <button>Volver al panel</button>
+</a>

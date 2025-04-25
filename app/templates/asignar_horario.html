@@ -1,0 +1,38 @@
+<h2>Asignar horario a empleado</h2>
+
+<form method="POST">
+  <label>Seleccionar empleado:</label><br>
+  <select name="empleado_id" required>
+    {% for emp in empleados %}
+      <option value="{{ emp[0] }}">{{ emp[1] }} {{ emp[2] }}</option>
+    {% endfor %}
+  </select>
+
+  <br><br>
+
+  <label>Hora de entrada:</label>
+  <input type="time" name="hora_entrada" required><br><br>
+
+  <label>Hora de salida:</label>
+  <input type="time" name="hora_salida" required><br><br>
+
+  <label>Días de trabajo:</label><br>
+  <input type="checkbox" name="dias_laborales" value="l"> Lunes<br>
+  <input type="checkbox" name="dias_laborales" value="m"> Martes<br>
+  <input type="checkbox" name="dias_laborales" value="w"> Miércoles<br>
+  <input type="checkbox" name="dias_laborales" value="j"> Jueves<br>
+  <input type="checkbox" name="dias_laborales" value="v"> Viernes<br>
+  <input type="checkbox" name="dias_laborales" value="s"> Sábado<br>
+  <input type="checkbox" name="dias_laborales" value="d"> Domingo<br>
+
+  <br>
+  <button type="submit">Asignar horario</button>
+</form>
+
+{% if mensaje %}
+  <p style="color:green;">{{ mensaje }}</p>
+{% endif %}
+
+<a href="{{ url_for('main.admin_panel') }}">
+  <button>Volver al panel</button>
+</a>

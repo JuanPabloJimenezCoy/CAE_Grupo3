@@ -1,0 +1,28 @@
+<h2>Reporte de Retrasos</h2>
+
+{% if retrasos %}
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>Empleado</th>
+      <th>Veces tarde</th>
+      <th>Minutos totales de retraso</th>
+    </tr>
+    {% for r in retrasos %}
+      <tr>
+        <td>{{ r[0] }} {{ r[1] }}</td>
+        <td>{{ r[2] }}</td>
+        <td>{{ r[3] }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+{% else %}
+  <p>No hay registros de retrasos recientes.</p>
+{% endif %}<br>
+
+<a href="{{ url_for('main.exportar_retrasos') }}">
+    <button>Descargar reporte en Excel</button>
+</a><br><br>
+
+<a href="{{ url_for('main.supervisor_panel') }}">
+  <button>Volver al panel</button>
+</a>
