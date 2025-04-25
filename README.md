@@ -12,12 +12,10 @@ Sistema web de control de acceso para empleados, supervisores y administradores,
 - Registro de entrada mediante:
   - PIN
   - Tarjeta
-  - Código QR personalizado
+  - Código QR
 - Asignación de horarios por día y hora.
 - Solicitud de tiempo extra con carga de justificativos.
-- Supervisores aprueban/rechazan solicitudes y envían avisos con archivo adjunto.
-- Descarga de archivos (justificativos, avisos).
-- Visualización de historial personal de asistencia.
+- Descarga de archivos (justificativos).
 - Generación de reportes con Pandas + Excel.
 - Asignación de empleados a supervisores.
 - Registro de retrasos, salidas tempranas o fuera de horario.
@@ -33,19 +31,20 @@ Sistema web de control de acceso para empleados, supervisores y administradores,
   - `python-dotenv`
   - `pytz`
   - `qrcode[pil]`
-  - `pandas`, `openpyxl`
+  - `pandas`
+  - `openpyxl`
 
 ---
 
 # Instalar las dependencias
--	pip install flask
--   pip install flask
--   pip install psycopg2-binary
--   pip install python-dotenv
--   pip install pytz
--   pip install qrcode[pil]
--   pip install pandas
--   pip install openpyxl
+-	`pip install flask`
+-   `pip install flask`
+-   `pip install psycopg2-binary`
+-   `pip install python-dotenv`
+-   `pip install pytz`
+-   `pip install qrcode[pil]`
+-   `pip install pandas`
+-   `pip install openpyxl`
 
 ---
 
