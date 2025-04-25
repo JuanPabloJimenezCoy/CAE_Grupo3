@@ -1,6 +1,7 @@
 flask
 psycopg2-binary
 python-dotenv
-python-pytz
+pytz
 qrcode[pil]
-pandas openpyxl
+pandas
+openpyxl
