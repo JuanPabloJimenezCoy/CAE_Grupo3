@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.11.0...v0.12.0) (2025-04-25)
+
+
+### Features
+
+* update all ([a37a150](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/a37a15075dd8c95279392d0b733ae999a23fcb59))
+
 ## [0.11.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.10.0...v0.11.0) (2025-04-23)
 
 
