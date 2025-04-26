@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.15.0...v0.16.0) (2025-04-26)
+
+
+### Features
+
+* update __init__.py, login.html, revisar_tiempo_extra.html and create style_revisar_horas_extra.html ([4034bef](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/4034befa317ddb80f8608e34b162b1986502d535))
+
 ## [0.15.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.14.0...v0.15.0) (2025-04-25)
 
 
