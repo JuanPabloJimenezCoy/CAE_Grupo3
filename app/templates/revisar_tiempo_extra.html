@@ -1,34 +1,53 @@
-<h2>Solicitudes de tiempo extra</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Solicitudes de Tiempo Extra</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_revisar_horas_extra.css') }}">
+</head>
+<body>
 
-{% if solicitudes %}
-  <table border="1" cellpadding="6">
-    <tr>
-      <th>Empleado</th>
-      <th>Fecha</th>
-      <th>Horario</th>
-      <th>Motivo</th>
-      <th>Justificativo</th>
-    </tr>
-    {% for s in solicitudes %}
-    <tr>
-      <td>{{ s[1] }} {{ s[2] }}</td>
-      <td>{{ s[3] }}</td>
-      <td>{{ s[4] }} - {{ s[5] }}</td>
-      <td>{{ s[6] }}</td>
-      <td>
-        {% if s[7] %}
-          <a href="{{ url_for('main.descargar_justificativo', filename=s[7]) }}">Descargar</a>
-        {% else %}
-          Sin archivo
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
-{% else %}
-  <p>No hay solicitudes registradas.</p>
-{% endif %}
+<div class="container">
+  <h2>Solicitudes de Tiempo Extra</h2>
 
-<a href="{{ url_for('main.supervisor_panel') }}">
-  <button>Volver al panel</button>
-</a>
+  {% if solicitudes %}
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Fecha</th>
+          <th>Horario</th>
+          <th>Motivo</th>
+          <th>Justificativo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitudes %}
+        <tr>
+          <td>{{ s[1] }} {{ s[2] }}</td>
+          <td>{{ s[3] }}</td>
+          <td>{{ s[4] }} - {{ s[5] }}</td>
+          <td>{{ s[6] }}</td>
+          <td>
+            {% if s[7] %}
+              <a class="boton-descargar" href="{{ url_for('main.descargar_justificativo', filename=s[7]) }}" target="_blank">Descargar</a>
+            {% else %}
+              Sin archivo
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No hay solicitudes registradas.</p>
+  {% endif %}
+
+  <br>
+  <a href="{{ url_for('main.supervisor_panel') }}">
+    <button class="boton">Volver al panel</button>
+  </a>
+</div>
+
+</body>
+</html>
