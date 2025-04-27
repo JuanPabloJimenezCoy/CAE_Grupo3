@@ -1,18 +1,51 @@
-<h2>Panel del Empleado</h2>
-<p>Bienvenido al sistema.</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel del Empleado</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-<a href="{{ url_for('main.vista_registro_entrada') }}">
-  <button>Registrar entrada</button>
-</a><br><br>
+<body class="bg-success-subtle">
 
-<a href="{{ url_for('main.vista_registro_salida') }}">
-  <button>Registrar salida</button>
-</a><br><br>
+<div class="container py-5">
 
-<a href="{{ url_for('main.solicitar_tiempo_extra') }}">
-  <button>Solicitar tiempo extra</button>
-</a><br><br>
+  <div class="text-center mb-5">
+    <h2 class="text-success">Panel del Empleado</h2>
+    <p class="lead text-dark">
+      Bienvenido al sistema
+    </p>
+  </div>
 
-<a href="{{ url_for('main.login') }}">
-  <button>Salir</button>
-</a>
+  <div class="d-grid gap-3 col-6 mx-auto">
+
+    <a href="{{ url_for('main.vista_registro_entrada') }}" class="btn btn-success btn-lg">
+      Registrar Entrada
+    </a>
+
+    <a href="{{ url_for('main.vista_registro_salida') }}" class="btn btn-success btn-lg">
+      Registrar Salida
+    </a>
+
+    <a href="{{ url_for('main.solicitar_tiempo_extra') }}" class="btn btn-success btn-lg">
+      Solicitar Tiempo Extra
+    </a>
+
+    <a href="{{ url_for('main.ver_tiempo_extra_empleado') }}" class="btn btn-outline-success btn-lg">
+      Ver Solicitudes de Tiempo Extra
+    </a>
+
+    <a href="{{ url_for('main.ver_avisos_empleado') }}" class="btn btn-outline-success btn-lg">
+      Ver Mis Avisos
+    </a>
+
+    <a href="{{ url_for('main.login') }}" class="btn btn-danger btn-lg">
+      Salir
+    </a>
+
+  </div>
+
+</div>
+
+</body>
+</html>

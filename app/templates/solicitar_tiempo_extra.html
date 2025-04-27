@@ -1,28 +1,67 @@
-<h2>Solicitar tiempo extra</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Solicitar Tiempo Extra</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-<form method="POST" enctype="multipart/form-data">
-  <label>Fecha:</label>
-  <input type="date" name="fecha" required><br><br>
+<body class="bg-success-subtle">
 
-  <label>Hora de inicio:</label>
-  <input type="time" name="hora_inicio" required><br><br>
+<div class="container py-5">
 
-  <label>Hora de fin:</label>
-  <input type="time" name="hora_fin" required><br><br>
+  <div class="text-center mb-5">
+    <h2 class="text-success">Solicitar Tiempo Extra</h2>
+  </div>
 
-  <label>Motivo:</label><br>
-  <textarea name="motivo" rows="4" cols="50"></textarea><br><br>
+  <div class="d-flex justify-content-center">
+    <form method="POST" enctype="multipart/form-data" class="w-50 p-4 bg-white rounded shadow">
 
-  <label>Adjuntar justificativo (PDF, imagen, Word...):</label>
-  <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"><br><br>
+      <div class="mb-3">
+        <label class="form-label">Fecha:</label>
+        <input type="date" name="fecha" class="form-control" required>
+      </div>
 
-  <button type="submit">Enviar solicitud</button>
-</form>
+      <div class="mb-3">
+        <label class="form-label">Hora de Inicio:</label>
+        <input type="time" name="hora_inicio" class="form-control" required>
+      </div>
 
-{% if mensaje %}
-  <p style="color:green;">{{ mensaje }}</p>
-{% endif %}
+      <div class="mb-3">
+        <label class="form-label">Hora de Fin:</label>
+        <input type="time" name="hora_fin" class="form-control" required>
+      </div>
 
-<a href="{{ url_for('main.empleado_panel') }}">
-  <button>Volver al panel</button>
-</a>
+      <div class="mb-3">
+        <label class="form-label">Motivo:</label>
+        <textarea name="motivo" rows="4" class="form-control"></textarea>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Adjuntar Justificativo (PDF, Imagen, Word):</label>
+        <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="form-control">
+      </div>
+
+      <div class="d-grid gap-2 mb-3">
+        <button type="submit" class="btn btn-success">Enviar Solicitud</button>
+      </div>
+
+    </form>
+  </div>
+
+  {% if mensaje %}
+  <div class="alert alert-success text-center mt-4" role="alert">
+    {{ mensaje }}
+  </div>
+  {% endif %}
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.empleado_panel') }}" class="btn btn-secondary">
+      Volver al Panel
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>

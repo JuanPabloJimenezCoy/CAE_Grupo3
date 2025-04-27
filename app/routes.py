@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from .auth import buscar_usuario_por_documento
 from datetime import date
 from datetime import datetime
+from flask import flash
 import pytz
 from flask import send_from_directory
 from .database import get_connection
@@ -1086,7 +1087,7 @@ def solicitar_tiempo_extra():
 
     return render_template('solicitar_tiempo_extra.html')
 
-@main_bp.route('/supervisor/tiempo-extra', methods=['GET'])
+@main_bp.route('/supervisor/tiempo-extra', methods=['GET', 'POST'])
 def revisar_tiempo_extra():
     from .database import get_connection
 
@@ -1097,10 +1098,26 @@ def revisar_tiempo_extra():
     conn = get_connection()
     cur = conn.cursor()
 
-    # Obtener solicitudes de empleados asignados a este supervisor
+    if request.method == 'POST':
+        id_solicitud = request.form.get('id_solicitud')
+        accion = request.form.get('accion')  # 'aprobar' o 'rechazar'
+
+        if id_solicitud and accion in ['aprobar', 'rechazar']:
+            nuevo_estado = 'Aprobado' if accion == 'aprobar' else 'Rechazado'
+            cur.execute("""
+                UPDATE tiempo_extra
+                SET estado = %s
+                WHERE id = %s
+            """, (nuevo_estado, id_solicitud))
+            conn.commit()
+            flash('Solicitud actualizada exitosamente.', 'success')
+
+        return redirect(url_for('main.revisar_tiempo_extra'))
+
+    # Si es GET: mostrar solicitudes
     cur.execute("""
         SELECT te.id, e.nombre, e.apellido, te.fecha, te.hora_inicio, te.hora_fin,
-               te.motivo, te.archivo_justificacion
+               te.motivo, te.archivo_justificacion, te.estado
         FROM tiempo_extra te
         JOIN empleado e ON te.documento_empleado = e.documento
         JOIN empleado_supervisor es ON e.id_empleado = es.id_empleado
@@ -1108,6 +1125,7 @@ def revisar_tiempo_extra():
         WHERE s.documento = %s
         ORDER BY te.fecha DESC
     """, (documento,))
+
     solicitudes = cur.fetchall()
 
     cur.close()
@@ -1123,3 +1141,161 @@ def descargar_justificativo(filename):
     ruta = os.path.join(current_app.root_path, 'uploads', 'tiempo_extra')
     return send_from_directory(ruta, filename, as_attachment=True)
 
+
+@main_bp.route('/empleado/mis_solicitudes_tiempo-extra', methods=['GET'])
+def ver_tiempo_extra_empleado():
+    from .database import get_connection
+
+    if 'documento' not in session or session.get('rol') != 'empleado':
+        return redirect(url_for('main.login'))
+
+    documento = session['documento']
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, fecha, hora_inicio, hora_fin, motivo, archivo_justificacion, estado
+        FROM tiempo_extra
+        WHERE documento_empleado = %s
+        ORDER BY fecha DESC
+    """, (documento,))
+
+    solicitudes = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template('ver_mis_solicitudes_extra.html', solicitudes=solicitudes)
+
+
+@main_bp.route('/supervisor/avisos', methods=['GET', 'POST'])
+def enviar_aviso():
+    from .database import get_connection
+    import os
+    from werkzeug.utils import secure_filename
+    from flask import current_app
+
+    if 'documento' not in session or session.get('rol') != 'supervisor':
+        return redirect(url_for('main.login'))
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    documento_supervisor = session['documento']
+
+    if request.method == 'POST':
+        id_empleado = request.form.get('id_empleado')
+        archivo = request.files.get('archivo')
+
+        if id_empleado and archivo:
+            filename = secure_filename(archivo.filename)
+            ruta_guardado = os.path.join(current_app.root_path, 'uploads', 'avisos')
+
+            if not os.path.exists(ruta_guardado):
+                os.makedirs(ruta_guardado)
+
+            archivo.save(os.path.join(ruta_guardado, filename))
+
+            # Buscar el id_supervisor
+            cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento_supervisor,))
+            supervisor = cur.fetchone()
+
+            if supervisor:
+                id_supervisor = supervisor[0]
+                cur.execute("""
+                    INSERT INTO avisos (id_empleado, id_supervisor, archivo_justificativo)
+                    VALUES (%s, %s, %s)
+                """, (id_empleado, id_supervisor, filename))
+                conn.commit()
+                flash('Aviso enviado exitosamente.', 'success')
+                return redirect(url_for('main.enviar_aviso'))
+            else:
+                flash('Supervisor no encontrado.', 'danger')
+
+    # ✅ CORREGIDO: traer solo empleados a su cargo
+    cur.execute("""
+        SELECT e.id_empleado, e.nombre, e.apellido
+        FROM empleado e
+        JOIN empleado_supervisor es ON e.id_empleado = es.id_empleado
+        JOIN supervisor s ON es.id_supervisor = s.id_supervisor
+        WHERE s.documento = %s
+    """, (documento_supervisor,))
+    empleados = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template('enviar_avisos.html', empleados=empleados)
+
+@main_bp.route('/empleado/avisos', methods=['GET'])
+def ver_avisos_empleado():
+    from .database import get_connection
+
+    if 'documento' not in session or session.get('rol') != 'empleado':
+        return redirect(url_for('main.login'))
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # Obtener el ID del empleado que está logueado
+    documento_empleado = session['documento']
+
+    cur.execute("SELECT id_empleado FROM empleado WHERE documento = %s", (documento_empleado,))
+    empleado = cur.fetchone()
+
+    if empleado:
+        id_empleado = empleado[0]
+
+        cur.execute("""
+            SELECT fecha, archivo_justificativo
+            FROM avisos
+            WHERE id_empleado = %s
+            ORDER BY fecha DESC
+        """, (id_empleado,))
+
+        avisos = cur.fetchall()
+    else:
+        avisos = []
+
+    cur.close()
+    conn.close()
+
+    return render_template('ver_avisos.html', avisos=avisos)
+
+
+@main_bp.route('/uploads/avisos/<path:filename>')
+def descargar_aviso(filename):
+    import os
+    from flask import current_app
+    from flask import send_from_directory
+
+    ruta = os.path.join(current_app.root_path, 'uploads', 'avisos')
+    return send_from_directory(ruta, filename)
+
+
+@main_bp.route('/admin/avisos', methods=['GET'])
+def ver_avisos_admin():
+    from .database import get_connection
+
+    if 'documento' not in session or session.get('rol') != 'administrador':
+        return redirect(url_for('main.login'))
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT a.fecha, e.nombre || ' ' || e.apellido AS empleado,
+               s.nombre || ' ' || s.apellido AS supervisor,
+               a.archivo_justificativo
+        FROM avisos a
+        JOIN empleado e ON a.id_empleado = e.id_empleado
+        JOIN supervisor s ON a.id_supervisor = s.id_supervisor
+        ORDER BY a.fecha DESC
+    """)
+
+    avisos = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template('ver_avisos_admin.html', avisos=avisos)

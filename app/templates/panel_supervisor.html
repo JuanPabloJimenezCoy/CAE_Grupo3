@@ -1,26 +1,53 @@
-<h2>Panel del Supervisor</h2>
-<p>Bienvenido supervisor.</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel del Supervisor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-<a href="{{ url_for('main.vista_registro_entrada_supervisor') }}">
-  <button>Registrar entrada</button>
-</a><br><br>
+<body class="bg-warning-subtle">
 
-<a href="{{ url_for('main.vista_registro_salida_supervisor') }}">
-  <button>Registrar salida</button>
-</a><br><br>
+<div class="container py-5">
 
-<a href="{{ url_for('main.ver_empleados_asignados') }}">
-  <button>Ver empleados a cargo</button>
-</a><br><br>
+  <div class="text-center mb-5">
+    <h2 class="text-warning">Panel del Supervisor</h2>
+    <p class="lead text-dark">Bienvenido supervisor.</p>
+  </div>
 
-<a href="{{ url_for('main.ver_retrasos') }}">
-  <button>Ver reporte de retrasos</button>
-</a><br><br>
+  <div class="d-grid gap-3 col-6 mx-auto">
 
-<a href="{{ url_for('main.revisar_tiempo_extra') }}">
-  <button>Revisar solicitudes de tiempo extra</button>
-</a><br><br>
+    <a href="{{ url_for('main.vista_registro_entrada_supervisor') }}" class="btn btn-warning btn-lg">
+      Registrar Entrada
+    </a>
 
-<a href="{{ url_for('main.login') }}">
-  <button>Salir</button>
-</a>
+    <a href="{{ url_for('main.vista_registro_salida_supervisor') }}" class="btn btn-warning btn-lg">
+      Registrar Salida
+    </a>
+
+    <a href="{{ url_for('main.ver_empleados_asignados') }}" class="btn btn-outline-warning btn-lg">
+      Ver Empleados a Cargo
+    </a>
+
+    <a href="{{ url_for('main.ver_retrasos') }}" class="btn btn-outline-warning btn-lg">
+      Ver Reporte de Retrasos
+    </a>
+
+    <a href="{{ url_for('main.revisar_tiempo_extra') }}" class="btn btn-outline-warning btn-lg">
+      Revisar Solicitudes de Tiempo Extra
+    </a>
+
+    <a href="{{ url_for('main.enviar_aviso') }}" class="btn btn-outline-warning btn-lg">
+      Enviar Memorandos
+    </a>
+
+    <a href="{{ url_for('main.login') }}" class="btn btn-secondary btn-lg">
+      Salir
+    </a>
+
+  </div>
+
+</div>
+
+</body>
+</html>

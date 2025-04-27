@@ -1,28 +1,59 @@
-<h2>Reporte de Retrasos</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte de Retrasos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-{% if retrasos %}
-  <table border="1" cellpadding="6">
-    <tr>
-      <th>Empleado</th>
-      <th>Veces tarde</th>
-      <th>Minutos totales de retraso</th>
-    </tr>
-    {% for r in retrasos %}
-      <tr>
-        <td>{{ r[0] }} {{ r[1] }}</td>
-        <td>{{ r[2] }}</td>
-        <td>{{ r[3] }}</td>
-      </tr>
-    {% endfor %}
-  </table>
-{% else %}
-  <p>No hay registros de retrasos recientes.</p>
-{% endif %}<br>
+<body class="bg-warning-subtle">
 
-<a href="{{ url_for('main.exportar_retrasos') }}">
-    <button>Descargar reporte en Excel</button>
-</a><br><br>
+<div class="container py-5">
 
-<a href="{{ url_for('main.supervisor_panel') }}">
-  <button>Volver al panel</button>
-</a>
+  <div class="text-center mb-5">
+    <h2 class="text-warning">Reporte de Retrasos</h2>
+  </div>
+
+  {% if retrasos %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover border-warning">
+        <thead class="table-warning">
+          <tr>
+            <th>Empleado</th>
+            <th>Veces Tarde</th>
+            <th>Minutos Totales de Retraso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in retrasos %}
+          <tr>
+            <td>{{ r[0] }} {{ r[1] }}</td>
+            <td>{{ r[2] }}</td>
+            <td>{{ r[3] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      No hay registros de retrasos recientes.
+    </div>
+  {% endif %}
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.exportar_retrasos') }}" class="btn btn-outline-warning">
+      Descargar Reporte en Excel
+    </a>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.supervisor_panel') }}" class="btn btn-secondary">
+      Volver al Panel
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>

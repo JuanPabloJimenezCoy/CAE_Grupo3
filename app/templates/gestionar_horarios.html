@@ -1,27 +1,67 @@
-<h2>Horarios asignados</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Horarios Asignados</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-{% for h in horarios %}
-  <form method="POST" style="border:1px solid #ccc; padding:10px; margin-bottom:15px;">
-    <strong>{{ h[1] }} {{ h[2] }}</strong><br>
-    <input type="hidden" name="empleado_id" value="{{ h[0] }}">
+<body class="bg-light">
 
-    Hora de entrada:
-    <input type="time" name="hora_entrada" value="{{ h[3] }}" required><br>
+<div class="container py-5">
 
-    Hora de salida:
-    <input type="time" name="hora_salida" value="{{ h[4] }}" required><br>
+  <div class="text-center mb-5">
+    <h2 class="text-dark">Horarios Asignados</h2>
+  </div>
 
-    Días laborales:<br>
-    {% for letra, dia in [('l', 'Lunes'), ('m', 'Martes'), ('w', 'Miércoles'), ('j', 'Jueves'), ('v', 'Viernes'), ('s', 'Sábado'), ('d', 'Domingo')] %}
-      <input type="checkbox" name="dias_laborales" value="{{ letra }}"
-             {% if letra in h[5] %}checked{% endif %}> {{ dia }}<br>
-    {% endfor %}
+  {% for h in horarios %}
+    <div class="d-flex justify-content-center mb-4">
+      <form method="POST" class="w-50 p-4 bg-white border border-secondary rounded shadow">
 
-    <br>
-    <button type="submit">Actualizar horario</button>
-  </form>
-{% endfor %}
+        <div class="mb-3">
+          <strong class="text-dark">{{ h[1] }} {{ h[2] }}</strong>
+        </div>
 
-<a href="{{ url_for('main.admin_panel') }}">
-  <button>Volver al panel</button>
-</a>
+        <input type="hidden" name="empleado_id" value="{{ h[0] }}">
+
+        <div class="mb-3">
+          <label class="form-label">Hora de Entrada:</label>
+          <input type="time" name="hora_entrada" value="{{ h[3] }}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Hora de Salida:</label>
+          <input type="time" name="hora_salida" value="{{ h[4] }}" class="form-control" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Días Laborales:</label><br>
+          {% for letra, dia in [('l', 'Lunes'), ('m', 'Martes'), ('w', 'Miércoles'), ('j', 'Jueves'), ('v', 'Viernes'), ('s', 'Sábado'), ('d', 'Domingo')] %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="dias_laborales" value="{{ letra }}" id="{{ letra }}{{ h[0] }}"
+              {% if letra in h[5] %}checked{% endif %}>
+              <label class="form-check-label" for="{{ letra }}{{ h[0] }}">
+                {{ dia }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-grid gap-2 mb-3">
+          <button type="submit" class="btn btn-dark">Actualizar Horario</button>
+        </div>
+
+      </form>
+    </div>
+  {% endfor %}
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.admin_panel') }}" class="btn btn-secondary">
+      Volver al Panel
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>

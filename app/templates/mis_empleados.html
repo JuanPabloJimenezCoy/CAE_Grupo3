@@ -1,15 +1,40 @@
-<h2>Mis empleados asignados</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Empleados Asignados</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-{% if empleados %}
-  <ul>
-    {% for emp in empleados %}
-      <li>{{ emp[0] }} {{ emp[1] }}</li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No tienes empleados asignados.</p>
-{% endif %}
+<body class="bg-warning-subtle">
 
-<a href="{{ url_for('main.supervisor_panel') }}">
-  <button>Volver al panel</button>
-</a>
+<div class="container py-5">
+
+  <div class="text-center mb-5">
+    <h2 class="text-warning">Mis Empleados Asignados</h2>
+  </div>
+
+  {% if empleados %}
+    <div class="d-flex justify-content-center">
+      <ul class="list-group w-50">
+        {% for emp in empleados %}
+          <li class="list-group-item">{{ emp[0] }} {{ emp[1] }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      No tienes empleados asignados.
+    </div>
+  {% endif %}
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.supervisor_panel') }}" class="btn btn-secondary">
+      Volver al Panel
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>
