@@ -1293,6 +1293,7 @@ def descargar_aviso(filename):
     return send_from_directory(ruta, filename)
 
 
+
 @main_bp.route('/admin/avisos', methods=['GET'])
 def ver_avisos_admin():
     from .database import get_connection
