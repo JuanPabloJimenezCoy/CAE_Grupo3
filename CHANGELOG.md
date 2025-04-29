@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.19.0...v1.0.0) (2025-04-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* se reinicia el sistema para producción
+
+### Features
+
+* inicio de versión estable 1.0.0 ([49ef104](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/49ef1040369b97d108492687ee3eb11d4ad92828))
+
 ## [0.19.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.18.0...v0.19.0) (2025-04-29)
 
 
