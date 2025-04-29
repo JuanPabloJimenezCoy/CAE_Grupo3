@@ -7,7 +7,7 @@ name = "control-de-acceso"
 version = "0.18.0"
 description = "Sistema de control de acceso de empleados en Flask"
 authors = [
-    {name = "Grupo3", email = "Grupo3@gmial.com"}
+    {name = "Grupo3", email = "Grupo3@gmail.com"}
 ]
 license = {text = "MIT"}
 dependencies = [
