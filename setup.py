@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="control-de-acceso",
-    version="0.19.0",
+    version="1.0.0",
     packages=find_packages(),
     install_requires=[
         "flask",
