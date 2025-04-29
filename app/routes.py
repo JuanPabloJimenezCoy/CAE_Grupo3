@@ -9,6 +9,26 @@ from .database import get_connection
 
 main_bp = Blueprint('main', __name__)
 
+TEMPLATE_PANEL_SUPERVISOR = 'panel_supervisor.html'
+TEMPLATE_PANEL_EMPLEADO = 'panel_empleado.html'
+TEMPLATE_PANEL_ADMIN = 'panel_admin.html'
+TEMPLATE_REGISTRO_ENTRADA = 'registro_entrada.html'
+TEMPLATE_REGISTRO_SALIDA = 'registro_salida.html'
+TEMPLATE_ASIGNAR_EMPLEADOS = 'asignar_empleados.html'
+TEMPLATE_GESTIONAR_ASIGNACIONES = 'gestionar_asignaciones.html'
+TEMPLATE_ASIGNAR_HORARIO = 'asignar_horario.html'
+TEMPLATE_GESTIONAR_HORARIOS = 'gestionar_horarios.html'
+TEMPLATE_REPORTE_RETRASOS = 'reporte_retrasos.html'
+TEMPLATE_SOLICITAR_TIEMPO_EXTRA = 'solicitar_tiempo_extra.html'
+TEMPLATE_REVISAR_TIEMPO_EXTRA = 'revisar_tiempo_extra.html'
+TEMPLATE_ENVIAR_AVISOS = 'enviar_avisos.html'
+TEMPLATE_VER_AVISOS = 'ver_avisos.html'
+TEMPLATE_VER_AVISOS_ADMIN = 'ver_avisos_admin.html'
+TEMPLATE_MI_QR = 'mi_qr.html'
+TEMPLATE_LOGIN = 'login.html'
+TEMPLATE_MIS_EMPLEADOS = 'mis_empleados.html'
+TEMPLATE_VER_SOLICITUDES_EXTRA = 'ver_mis_solicitudes_extra.html'
+
 @main_bp.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -26,24 +46,57 @@ def login():
             elif rol == 'administrador':
                 return redirect(url_for('main.admin_panel'))
 
-        return render_template('login.html', error='Documento no registrado.')
+        return render_template(TEMPLATE_LOGIN, error='Documento no registrado.')
 
-    return render_template('login.html')
+    return render_template(TEMPLATE_LOGIN)
 
 
 @main_bp.route('/panel/empleado')
 def empleado_panel():
-    return render_template('panel_empleado.html')
+    return render_template(TEMPLATE_PANEL_EMPLEADO)
 
 
 @main_bp.route('/panel/supervisor')
 def supervisor_panel():
-    return render_template('panel_supervisor.html')
+    return render_template(TEMPLATE_PANEL_SUPERVISOR)
 
 
 @main_bp.route('/panel/admin')
 def admin_panel():
-    return render_template('panel_admin.html')
+    return render_template(TEMPLATE_PANEL_ADMIN)
+
+
+def esta_en_horario_actual(hora_actual, hora_entrada, hora_salida):
+    if hora_entrada <= hora_salida:
+        return hora_entrada <= hora_actual <= hora_salida
+    else:
+        return hora_actual >= hora_entrada or hora_actual <= hora_salida
+
+    
+def validar_empleado_y_horario(cur, documento, ahora):
+    cur.execute("SELECT id_empleado FROM empleado WHERE documento = %s", (documento,))
+    result = cur.fetchone()
+    if not result:
+        return None, "No se encontró el empleado."
+
+    id_empleado = result[0]
+
+    cur.execute("""
+        SELECT dias_laborales, hora_entrada, hora_salida
+        FROM horarios
+        WHERE id_empleado = %s
+    """, (id_empleado,))
+    horario = cur.fetchone()
+    if not horario:
+        return None, "No tienes un horario asignado."
+
+    dias_codigos = {0: 'l', 1: 'm', 2: 'w', 3: 'j', 4: 'v', 5: 's', 6: 'd'}
+    dia_actual = dias_codigos[ahora.weekday()]
+    if dia_actual not in horario[0]:
+        return None, "Hoy no es uno de tus días laborales."
+
+    return horario, None
+
 
 @main_bp.route('/empleado/entrada', methods=['GET', 'POST'])
 def vista_registro_entrada():
@@ -67,81 +120,45 @@ def vista_registro_entrada():
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar si ya hay registro hoy
         cur.execute("""
             SELECT * FROM asistencia 
             WHERE documento_empleado = %s AND fecha = %s
         """, (documento, hoy))
-        ya_registrado = cur.fetchone()
-
-        if ya_registrado:
+        if cur.fetchone():
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="Ya registraste tu entrada hoy.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy.")
 
-        # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
         cur.execute(f"""
             SELECT * FROM empleado 
             WHERE documento = %s AND {campo} = %s
         """, (documento, valor))
-        empleado = cur.fetchone()
-
-        if not empleado:
+        if not cur.fetchone():
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="PIN o tarjeta incorrecta.")
 
-        # Obtener id_empleado
-        cur.execute("SELECT id_empleado FROM empleado WHERE documento = %s", (documento,))
-        id_empleado = cur.fetchone()[0]
-
-        # Obtener horario asignado
-        cur.execute("""
-            SELECT dias_laborales, hora_entrada, hora_salida
-            FROM horarios
-            WHERE id_empleado = %s
-        """, (id_empleado,))
-        horario = cur.fetchone()
-
-        if not horario:
+        horario, error = validar_empleado_y_horario(cur, documento, ahora)
+        if error:
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="No tienes un horario asignado.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error=error)
 
         dias_laborales, hora_entrada, hora_salida = horario
 
-        # Validar día laboral
-        dias_codigos = {0: 'l', 1: 'm', 2: 'w', 3: 'j', 4: 'v', 5: 's', 6: 'd'}
-        dia_actual = dias_codigos[ahora.weekday()]
-        if dia_actual not in dias_laborales:
-            cur.close()
-            conn.close()
-            return render_template('registro_entrada.html', error="Hoy no es uno de tus días laborales.")
-
-        # Validar si está dentro del rango de hora (considerando cruce de medianoche)
-        if hora_entrada <= hora_salida:
-            dentro_de_horario = hora_entrada <= hora_local <= hora_salida
-        else:
-            dentro_de_horario = hora_local >= hora_entrada or hora_local <= hora_salida
-
-        if not dentro_de_horario:
+        if not esta_en_horario_actual(hora_local, hora_entrada, hora_salida):
             cur.close()
             conn.close()
             return render_template(
-                'registro_entrada.html',
+                TEMPLATE_REGISTRO_ENTRADA,
                 error=f"Solo puedes registrar entrada entre {hora_entrada.strftime('%H:%M')} y {hora_salida.strftime('%H:%M')}."
             )
 
-        # Calcular minutos de retraso
         entrada_dt = dt.strptime(str(hora_local), "%H:%M:%S")
         entrada_prog_dt = dt.strptime(str(hora_entrada), "%H:%M:%S")
-        minutos_retraso = 0
-        if entrada_dt > entrada_prog_dt:
-            delta = entrada_dt - entrada_prog_dt
-            minutos_retraso = delta.seconds // 60
+        minutos_retraso = max(0, (entrada_dt - entrada_prog_dt).seconds // 60) if entrada_dt > entrada_prog_dt else 0
 
-        # Insertar asistencia
         try:
             cur.execute("""
                 INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha, minutos_retraso)
@@ -158,9 +175,9 @@ def vista_registro_entrada():
 
         cur.close()
         conn.close()
-        return render_template('registro_entrada.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
-    return render_template('registro_entrada.html')
+    return render_template(TEMPLATE_REGISTRO_ENTRADA)
 
 
 @main_bp.route('/supervisor/entrada', methods=['GET', 'POST'])
@@ -196,7 +213,7 @@ def vista_registro_entrada_supervisor():
         if ya_registrado:
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="Ya registraste tu entrada hoy.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy.")
 
         # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
@@ -209,7 +226,7 @@ def vista_registro_entrada_supervisor():
         if not supervisor:
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="PIN o tarjeta incorrecta.")
 
         try:
             # Insertar asistencia
@@ -226,9 +243,9 @@ def vista_registro_entrada_supervisor():
         cur.close()
         conn.close()
 
-        return render_template('registro_entrada.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
-    return render_template('registro_entrada.html')
+    return render_template(TEMPLATE_REGISTRO_ENTRADA)
 
 
 @main_bp.route('/admin/entrada', methods=['GET', 'POST'])
@@ -263,7 +280,7 @@ def vista_registro_entrada_admin():
         if ya_registrado:
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="Ya registraste tu entrada hoy.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy.")
 
         # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
@@ -276,7 +293,7 @@ def vista_registro_entrada_admin():
         if not admin:
             cur.close()
             conn.close()
-            return render_template('registro_entrada.html', error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="PIN o tarjeta incorrecta.")
 
         try:
             # Insertar asistencia con fecha local
@@ -293,9 +310,9 @@ def vista_registro_entrada_admin():
         cur.close()
         conn.close()
 
-        return render_template('registro_entrada.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
-    return render_template('registro_entrada.html')
+    return render_template(TEMPLATE_REGISTRO_ENTRADA)
 
 
 @main_bp.route('/empleado/salida', methods=['GET', 'POST'])
@@ -332,7 +349,7 @@ def vista_registro_salida():
         if not empleado:
             cur.close()
             conn.close()
-            return render_template('registro_salida.html', error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error="PIN o tarjeta incorrecta.")
 
         # Verificar asistencia del día sin salida
         cur.execute("""
@@ -344,7 +361,7 @@ def vista_registro_salida():
         if not asistencia:
             cur.close()
             conn.close()
-            return render_template('registro_salida.html', error="No hay entrada registrada hoy o ya registraste la salida.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error="No hay entrada registrada hoy o ya registraste la salida.")
 
         asistencia_id = asistencia[0]
 
@@ -396,9 +413,9 @@ def vista_registro_salida():
         cur.close()
         conn.close()
 
-        return render_template('registro_salida.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
-    return render_template('registro_salida.html')
+    return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
 @main_bp.route('/supervisor/salida', methods=['GET', 'POST'])
@@ -435,7 +452,7 @@ def vista_registro_salida_supervisor():
         if not supervisor:
             cur.close()
             conn.close()
-            return render_template('registro_salida.html', error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error="PIN o tarjeta incorrecta.")
 
         # Verificar asistencia del día sin salida
         cur.execute("""
@@ -447,7 +464,7 @@ def vista_registro_salida_supervisor():
         if not asistencia:
             cur.close()
             conn.close()
-            return render_template('registro_salida.html', error="No hay entrada registrada hoy o ya registraste la salida.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error="No hay entrada registrada hoy o ya registraste la salida.")
 
         asistencia_id = asistencia[0]
 
@@ -495,9 +512,9 @@ def vista_registro_salida_supervisor():
         cur.close()
         conn.close()
 
-        return render_template('registro_salida.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
-    return render_template('registro_salida.html')
+    return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
 @main_bp.route('/admin/salida', methods=['GET', 'POST'])
@@ -534,7 +551,7 @@ def vista_registro_salida_admin():
         if not admin:
             cur.close()
             conn.close()
-            return render_template('registro_salida.html', error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error="PIN o tarjeta incorrecta.")
 
         # Verificar asistencia del día sin salida
         cur.execute("""
@@ -546,7 +563,7 @@ def vista_registro_salida_admin():
         if not asistencia:
             cur.close()
             conn.close()
-            return render_template('registro_salida.html', error="No hay entrada registrada hoy o ya registraste la salida.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error="No hay entrada registrada hoy o ya registraste la salida.")
 
         asistencia_id = asistencia[0]
 
@@ -594,9 +611,9 @@ def vista_registro_salida_admin():
         cur.close()
         conn.close()
 
-        return render_template('registro_salida.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
-    return render_template('registro_salida.html')
+    return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
 @main_bp.route('/admin/asignar-empleados', methods=['GET', 'POST'])
@@ -628,7 +645,7 @@ def asignar_empleados():
             cur.close()
             conn.close()
             return render_template(
-                'asignar_empleados.html',
+                TEMPLATE_ASIGNAR_EMPLEADOS,
                 error="Selecciona al menos un empleado.",
                 supervisores=supervisores,
                 empleados=empleados
@@ -659,7 +676,7 @@ def asignar_empleados():
         conn.close()
 
         return render_template(
-            'asignar_empleados.html',
+            TEMPLATE_ASIGNAR_EMPLEADOS,
             mensaje="Asignación realizada con éxito.",
             supervisores=supervisores,
             empleados=empleados
@@ -679,7 +696,7 @@ def asignar_empleados():
     cur.close()
     conn.close()
 
-    return render_template('asignar_empleados.html', supervisores=supervisores, empleados=empleados)
+    return render_template(TEMPLATE_ASIGNAR_EMPLEADOS, supervisores=supervisores, empleados=empleados)
 
 
 @main_bp.route('/admin/gestionar-asignaciones', methods=['GET', 'POST'])
@@ -739,7 +756,7 @@ def gestionar_asignaciones():
             'supervisor_id': id_supervisor
         })
 
-    return render_template('gestionar_asignaciones.html', asignaciones=asignaciones)
+    return render_template(TEMPLATE_GESTIONAR_ASIGNACIONES, asignaciones=asignaciones)
 
 
 @main_bp.route('/supervisor/mis-empleados')
@@ -763,7 +780,7 @@ def ver_empleados_asignados():
     if not result:
         cur.close()
         conn.close()
-        return render_template('panel_supervisor.html', error="No se pudo encontrar el supervisor.")
+        return render_template(TEMPLATE_PANEL_SUPERVISOR, error="No se pudo encontrar el supervisor.")
 
     id_supervisor = result[0]
 
@@ -780,7 +797,7 @@ def ver_empleados_asignados():
     cur.close()
     conn.close()
 
-    return render_template('mis_empleados.html', empleados=empleados)
+    return render_template(TEMPLATE_MIS_EMPLEADOS, empleados=empleados)
 
 
 @main_bp.route('/mi-qr')
@@ -801,7 +818,7 @@ def ver_mi_qr():
     qr.save(buffer, format='PNG')
     qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    return render_template('mi_qr.html', qr_base64=qr_base64, documento=documento)
+    return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento)
 
 
 @main_bp.route('/admin/asignar-horario', methods=['GET', 'POST'])
@@ -823,7 +840,7 @@ def asignar_horario():
         if not dias:
             cur.close()
             conn.close()
-            return render_template('asignar_horario.html', empleados=[], mensaje="Debe seleccionar al menos un día.")
+            return render_template(TEMPLATE_ASIGNAR_HORARIO, empleados=[], mensaje="Debe seleccionar al menos un día.")
 
         dias_string = ''.join(dias)  # Ej: "lmvj"
 
@@ -841,7 +858,7 @@ def asignar_horario():
         cur.close()
         conn.close()
 
-        return render_template('asignar_horario.html', empleados=[], mensaje="Horario asignado correctamente.")
+        return render_template(TEMPLATE_ASIGNAR_HORARIO, empleados=[], mensaje="Horario asignado correctamente.")
 
     # GET
     cur.execute("""
@@ -855,7 +872,7 @@ def asignar_horario():
     cur.close()
     conn.close()
 
-    return render_template('asignar_horario.html', empleados=empleados)
+    return render_template(TEMPLATE_ASIGNAR_HORARIO, empleados=empleados)
 
 
 @main_bp.route('/admin/gestionar-horarios', methods=['GET', 'POST'])
@@ -897,7 +914,7 @@ def gestionar_horarios():
     cur.close()
     conn.close()
 
-    return render_template('gestionar_horarios.html', horarios=horarios)
+    return render_template(TEMPLATE_GESTIONAR_HORARIOS, horarios=horarios)
 
 
 def esta_en_horario(documento):
@@ -969,7 +986,7 @@ def ver_retrasos():
     if not result:
         cur.close()
         conn.close()
-        return render_template('panel_supervisor.html', error="No se encontró el supervisor.")
+        return render_template(TEMPLATE_PANEL_SUPERVISOR, error="No se encontró el supervisor.")
 
     id_supervisor = result[0]
 
@@ -990,7 +1007,7 @@ def ver_retrasos():
     cur.close()
     conn.close()
 
-    return render_template('reporte_retrasos.html', retrasos=retrasos)
+    return render_template(TEMPLATE_REPORTE_RETRASOS, retrasos=retrasos)
 
 
 @main_bp.route('/supervisor/retrasos/exportar')
@@ -1083,9 +1100,9 @@ def solicitar_tiempo_extra():
         cur.close()
         conn.close()
 
-        return render_template('solicitar_tiempo_extra.html', mensaje="Solicitud enviada correctamente.")
+        return render_template(TEMPLATE_SOLICITAR_TIEMPO_EXTRA, mensaje="Solicitud enviada correctamente.")
 
-    return render_template('solicitar_tiempo_extra.html')
+    return render_template(TEMPLATE_SOLICITAR_TIEMPO_EXTRA)
 
 @main_bp.route('/supervisor/tiempo-extra', methods=['GET', 'POST'])
 def revisar_tiempo_extra():
@@ -1131,7 +1148,7 @@ def revisar_tiempo_extra():
     cur.close()
     conn.close()
 
-    return render_template('revisar_tiempo_extra.html', solicitudes=solicitudes)
+    return render_template(TEMPLATE_REVISAR_TIEMPO_EXTRA, solicitudes=solicitudes)
 
 
 @main_bp.route('/descargar/justificativo/<filename>')
@@ -1165,7 +1182,7 @@ def ver_tiempo_extra_empleado():
     cur.close()
     conn.close()
 
-    return render_template('ver_mis_solicitudes_extra.html', solicitudes=solicitudes)
+    return render_template(TEMPLATE_VER_SOLICITUDES_EXTRA, solicitudes=solicitudes)
 
 
 @main_bp.route('/supervisor/avisos', methods=['GET', 'POST'])
@@ -1225,7 +1242,7 @@ def enviar_aviso():
     cur.close()
     conn.close()
 
-    return render_template('enviar_avisos.html', empleados=empleados)
+    return render_template(TEMPLATE_ENVIAR_AVISOS, empleados=empleados)
 
 @main_bp.route('/empleado/avisos', methods=['GET'])
 def ver_avisos_empleado():
@@ -1260,7 +1277,7 @@ def ver_avisos_empleado():
     cur.close()
     conn.close()
 
-    return render_template('ver_avisos.html', avisos=avisos)
+    return render_template(TEMPLATE_VER_AVISOS, avisos=avisos)
 
 
 @main_bp.route('/uploads/avisos/<path:filename>')
@@ -1298,4 +1315,4 @@ def ver_avisos_admin():
     cur.close()
     conn.close()
 
-    return render_template('ver_avisos_admin.html', avisos=avisos)
+    return render_template(TEMPLATE_VER_AVISOS_ADMIN, avisos=avisos)
