@@ -9,7 +9,7 @@ from .database import get_connection
 
 main_bp = Blueprint('main', __name__)
 
-# Mejora del sonar
+# Mejora del sonar, constantes
 TEMPLATE_PANEL_SUPERVISOR = 'panel_supervisor.html'
 TEMPLATE_PANEL_EMPLEADO = 'panel_empleado.html'
 TEMPLATE_PANEL_ADMIN = 'panel_admin.html'
@@ -29,6 +29,8 @@ TEMPLATE_MI_QR = 'mi_qr.html'
 TEMPLATE_LOGIN = 'login.html'
 TEMPLATE_MIS_EMPLEADOS = 'mis_empleados.html'
 TEMPLATE_VER_SOLICITUDES_EXTRA = 'ver_mis_solicitudes_extra.html'
+SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE documento = %s"
+
 
 @main_bp.route('/', methods=['GET', 'POST'])
 def login():
@@ -75,7 +77,7 @@ def esta_en_horario_actual(hora_actual, hora_entrada, hora_salida):
 
     
 def validar_empleado_y_horario(cur, documento, ahora):
-    cur.execute("SELECT id_empleado FROM empleado WHERE documento = %s", (documento,))
+    cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento,))
     result = cur.fetchone()
     if not result:
         return None, "No se encontró el empleado."
@@ -927,7 +929,7 @@ def esta_en_horario(documento):
     cur = conn.cursor()
 
     # Buscar ID del empleado
-    cur.execute("SELECT id_empleado FROM empleado WHERE documento = %s", (documento,))
+    cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento,))
     result = cur.fetchone()
     if not result:
         cur.close()
@@ -1258,7 +1260,7 @@ def ver_avisos_empleado():
     # Obtener el ID del empleado que está logueado
     documento_empleado = session['documento']
 
-    cur.execute("SELECT id_empleado FROM empleado WHERE documento = %s", (documento_empleado,))
+    cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento_empleado,))
     empleado = cur.fetchone()
 
     if empleado:
