@@ -1,11 +1,22 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app
 from .auth import buscar_usuario_por_documento
 from datetime import date
+from datetime import datetime as dt
 from datetime import datetime
 from flask import flash
 import pytz
 from flask import send_from_directory
 from .database import get_connection
+from .auth import (
+    zona_colombia,
+    ahora_colombia,
+    entrada_ya_registrada,
+    validar_credencial,
+    obtener_horario,
+    es_dia_laboral,
+    esta_en_rango_horario,
+    calcular_retraso
+)
 
 main_bp = Blueprint('main', __name__)
 
@@ -69,44 +80,33 @@ def admin_panel():
     return render_template(TEMPLATE_PANEL_ADMIN)
 
 
-def esta_en_horario_actual(hora_actual, hora_entrada, hora_salida):
-    if hora_entrada <= hora_salida:
-        return hora_entrada <= hora_actual <= hora_salida
-    else:
-        return hora_actual >= hora_entrada or hora_actual <= hora_salida
+def registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso):
+    _, hora_actual = ahora_colombia()
+    hoy = dt.now(zona_colombia()).date()
+    try:
+        cur.execute("""
+            INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha, minutos_retraso)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (documento, metodo, hora_actual, hoy, minutos_retraso))
+        conn.commit()
+        return (
+            f"Entrada registrada con éxito. Llegaste con {minutos_retraso} minutos de retraso."
+            if minutos_retraso > 0 else
+            "Entrada registrada a tiempo. ¡Buen trabajo!"
+        )
+    except Exception as e:
+        conn.rollback()
+        return f"Ocurrió un error al registrar la entrada: {str(e).splitlines()[0]}"
 
-    
-def validar_empleado_y_horario(cur, documento, ahora):
-    cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento,))
-    result = cur.fetchone()
-    if not result:
-        return None, "No se encontró el empleado."
 
-    id_empleado = result[0]
-
-    cur.execute("""
-        SELECT dias_laborales, hora_entrada, hora_salida
-        FROM horarios
-        WHERE id_empleado = %s
-    """, (id_empleado,))
-    horario = cur.fetchone()
-    if not horario:
-        return None, "No tienes un horario asignado."
-
-    dias_codigos = {0: 'l', 1: 'm', 2: 'w', 3: 'j', 4: 'v', 5: 's', 6: 'd'}
-    dia_actual = dias_codigos[ahora.weekday()]
-    if dia_actual not in horario[0]:
-        return None, "Hoy no es uno de tus días laborales."
-
-    return horario, None
+def cerrar_y_render(cur, conn, mensaje):
+    cur.close()
+    conn.close()
+    return render_template(TEMPLATE_REGISTRO_ENTRADA, error=mensaje)
 
 
 @main_bp.route('/empleado/entrada', methods=['GET', 'POST'])
 def vista_registro_entrada():
-    from .database import get_connection
-    from datetime import datetime as dt
-    import pytz
-
     if 'documento' not in session or session.get('rol') != 'empleado':
         return redirect(url_for('main.login'))
 
@@ -115,69 +115,28 @@ def vista_registro_entrada():
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        zona_colombia = pytz.timezone('America/Bogota')
-        ahora = dt.now(zona_colombia)
-        hora_local = ahora.time().replace(microsecond=0)
-        hoy = ahora.date()
-
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("""
-            SELECT * FROM asistencia 
-            WHERE documento_empleado = %s AND fecha = %s
-        """, (documento, hoy))
-        if cur.fetchone():
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy.")
+        if entrada_ya_registrada(cur, documento):
+            return cerrar_y_render(cur, conn, "Ya registraste tu entrada hoy.")
 
-        campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
-        cur.execute(f"""
-            SELECT * FROM empleado 
-            WHERE documento = %s AND {campo} = %s
-        """, (documento, valor))
-        if not cur.fetchone():
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="PIN o tarjeta incorrecta.")
+        if not validar_credencial(cur, documento, metodo, valor):
+            return cerrar_y_render(cur, conn, "PIN o tarjeta incorrecta.")
 
-        horario, error = validar_empleado_y_horario(cur, documento, ahora)
-        if error:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error=error)
+        horario = obtener_horario(cur, documento)
+        if not horario:
+            return cerrar_y_render(cur, conn, "No tienes un horario asignado.")
 
-        dias_laborales, hora_entrada, hora_salida = horario
+        if not es_dia_laboral(horario['dias_laborales']):
+            return cerrar_y_render(cur, conn, "Hoy no es uno de tus días laborales.")
 
-        if not esta_en_horario_actual(hora_local, hora_entrada, hora_salida):
-            cur.close()
-            conn.close()
-            return render_template(
-                TEMPLATE_REGISTRO_ENTRADA,
-                error=f"Solo puedes registrar entrada entre {hora_entrada.strftime('%H:%M')} y {hora_salida.strftime('%H:%M')}."
-            )
+        if not esta_en_rango_horario(horario['hora_entrada'], horario['hora_salida']):
+            return cerrar_y_render(cur, conn, f"Solo puedes registrar entrada entre {horario['hora_entrada']} y {horario['hora_salida']}.")
 
-        entrada_dt = dt.strptime(str(hora_local), "%H:%M:%S")
-        entrada_prog_dt = dt.strptime(str(hora_entrada), "%H:%M:%S")
-        minutos_retraso = max(0, (entrada_dt - entrada_prog_dt).seconds // 60) if entrada_dt > entrada_prog_dt else 0
+        minutos_retraso = calcular_retraso(horario['hora_entrada'])
+        mensaje = registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso)
 
-        try:
-            cur.execute("""
-                INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha, minutos_retraso)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (documento, metodo, hora_local, hoy, minutos_retraso))
-            conn.commit()
-            mensaje = (
-                f"Entrada registrada con éxito. Llegaste con {minutos_retraso} minutos de retraso."
-                if minutos_retraso > 0 else "Entrada registrada a tiempo. ¡Buen trabajo!"
-            )
-        except Exception as e:
-            conn.rollback()
-            mensaje = f"Ocurrió un error al registrar la entrada: {str(e).splitlines()[0]}"
-
-        cur.close()
-        conn.close()
         return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
     return render_template(TEMPLATE_REGISTRO_ENTRADA)
