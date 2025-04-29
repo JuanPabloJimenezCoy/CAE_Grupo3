@@ -9,6 +9,7 @@ from .database import get_connection
 
 main_bp = Blueprint('main', __name__)
 
+# Mejora del sonar
 TEMPLATE_PANEL_SUPERVISOR = 'panel_supervisor.html'
 TEMPLATE_PANEL_EMPLEADO = 'panel_empleado.html'
 TEMPLATE_PANEL_ADMIN = 'panel_admin.html'
