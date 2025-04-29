@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v1.0.0...v2.0.0) (2025-04-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* se reinicia el sistema para producción
+
+### Features
+
+* inicio de versión estable 1.0.0 ([49ef104](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/49ef1040369b97d108492687ee3eb11d4ad92828))
+* preparación para versión 1.0.0 sin breaking change ([84cc43f](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/84cc43f59bc95f25dc409cd359b53486cc6afffd))
+* update routes.py ([c6937fb](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/c6937fb51480d742dc92e7a0bed34a568043bf37))
+* update routes.py ([67758d5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/67758d58919fadf12b2fdae147b0db6d17f53752))
+
 ## [1.0.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.19.0...v1.0.0) (2025-04-29)
 
 
