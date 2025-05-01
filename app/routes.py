@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app
 from .auth import buscar_usuario_por_documento
+from .auth import cerrar_y_render, registrar_asistencia_y_mensaje, obtener_asistencia_abierta, calcular_mensaje_salida, registrar_salida
 from datetime import date
 from datetime import datetime as dt
 from datetime import datetime
@@ -44,6 +45,10 @@ SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE d
 LOGIN_ROUTE = 'main.login'
 PIN_O_TARJETA_MESSAGE_INCORRECTA = "PIN o tarjeta incorrecta"
 ZONA_HORARIA_CO = 'America/Bogota'
+LOGIN_ROUTE = 'main.login'
+MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta."
+MENSAJE_NO_ENTRADA_HOY = "No hay entrada registrada hoy o ya registraste la salida."
+MENSAJE_SALIDA_REGISTRADA = "Salida registrada con éxito."
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
@@ -282,10 +287,6 @@ def vista_registro_entrada_admin():
 
 @main_bp.route('/empleado/salida', methods=['GET', 'POST'])
 def vista_registro_salida():
-    from .database import get_connection
-    from datetime import datetime
-    import pytz
-
     if 'documento' not in session or session.get('rol') != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
@@ -295,92 +296,26 @@ def vista_registro_salida():
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
-        ahora = datetime.now(zona_colombia)
-        hora_local = ahora.time().replace(microsecond=0)
-        hoy = ahora.date()
-
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar identidad
-        campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
-        cur.execute(f"""
-            SELECT * FROM empleado 
-            WHERE documento = %s AND {campo} = %s
-        """, (documento, valor))
-        empleado = cur.fetchone()
+        if not validar_credencial(cur, documento, metodo, valor):
+            return cerrar_y_render(cur, conn, MENSAJE_PIN_INCORRECTO)
 
-        if not empleado:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
+        asistencia_id = obtener_asistencia_abierta(cur, documento)
+        if not asistencia_id:
+            return cerrar_y_render(cur, conn, MENSAJE_NO_ENTRADA_HOY)
 
-        # Verificar asistencia del día sin salida
-        cur.execute("""
-            SELECT id FROM asistencia 
-            WHERE documento_empleado = %s AND fecha = %s AND hora_salida IS NULL
-        """, (documento, hoy))
-        asistencia = cur.fetchone()
-
-        if not asistencia:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error="No hay entrada registrada hoy o ya registraste la salida.")
-
-        asistencia_id = asistencia[0]
-
-        # Obtener hora de salida programada
-        cur.execute("""
-            SELECT h.hora_salida
-            FROM horarios h
-            JOIN empleado e ON h.id_empleado = e.id_empleado
-            WHERE e.documento = %s
-        """, (documento,))
-        resultado = cur.fetchone()
-
-        mensaje = "Salida registrada con éxito."
-        if resultado:
-            hora_salida_prog = resultado[0]
-
-            from datetime import datetime as dt
-
-            salida_real = dt.strptime(str(hora_local), "%H:%M:%S")
-            salida_prog = dt.strptime(str(hora_salida_prog), "%H:%M:%S")
-
-            # Validar si horario cruza medianoche
-            if hora_salida_prog >= hora_local:
-                diferencia = (salida_real - salida_prog).total_seconds()
-            else:
-                # caso cruzando medianoche, ajustar con timedelta
-                salida_prog_completa = dt.combine(ahora.date(), hora_salida_prog)
-                if hora_local < hora_salida_prog:
-                    salida_real_completa = dt.combine(ahora.date(), hora_local)
-                else:
-                    salida_real_completa = dt.combine(ahora.date(), hora_local)
-                diferencia = (salida_real_completa - salida_prog_completa).total_seconds()
-
-            if abs(diferencia) <= 600:
-                mensaje += " Saliste a tiempo."
-            elif diferencia < -600:
-                mensaje += " Saliste antes de tiempo."
-            else:
-                mensaje += " Saliste después de tu hora."
-
-        # Registrar hora de salida
-        cur.execute("""
-            UPDATE asistencia 
-            SET hora_salida = %s
-            WHERE id = %s
-        """, (hora_local, asistencia_id))
+        mensaje = calcular_mensaje_salida(cur, documento)
+        registrar_salida(cur, asistencia_id)
 
         conn.commit()
         cur.close()
         conn.close()
 
-        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
+        return render_template('registro_salida.html', mensaje=mensaje)
 
-    return render_template(TEMPLATE_REGISTRO_SALIDA)
+    return render_template('registro_salida.html')
 
 
 @main_bp.route('/supervisor/salida', methods=['GET', 'POST'])

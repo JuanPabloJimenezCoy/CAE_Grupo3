@@ -1,6 +1,14 @@
 from .database import get_connection
 from datetime import datetime as dt
 import pytz
+from flask import render_template
+
+LOGIN_ROUTE = 'main.login'
+MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta."
+MENSAJE_NO_ENTRADA_HOY = "No hay entrada registrada hoy o ya registraste la salida."
+MENSAJE_SALIDA_REGISTRADA = "Salida registrada con éxito."
+TEMPLATE_REGISTRO_ENTRADA = 'registro_entrada.html'
+
 
 def buscar_usuario_por_documento(documento):
     """
@@ -77,3 +85,70 @@ def calcular_retraso(hora_entrada):
     entrada_real = dt.strptime(str(hora_actual), "%H:%M:%S")
     delta = (entrada_real - entrada_prog).seconds // 60 if entrada_real > entrada_prog else 0
     return delta
+
+def obtener_asistencia_abierta(cur, documento):
+    hoy, _ = ahora_colombia()
+    cur.execute("""
+        SELECT id FROM asistencia 
+        WHERE documento_empleado = %s AND fecha = %s AND hora_salida IS NULL
+    """, (documento, hoy))
+    fila = cur.fetchone()
+    return fila[0] if fila else None
+
+def calcular_mensaje_salida(cur, documento):
+    _, hora_real = ahora_colombia()
+
+    cur.execute("""
+        SELECT h.hora_salida
+        FROM horarios h
+        JOIN empleado e ON h.id_empleado = e.id_empleado
+        WHERE e.documento = %s
+    """, (documento,))
+    row = cur.fetchone()
+
+    if not row:
+        return MENSAJE_SALIDA_REGISTRADA
+
+    hora_prog = row[0]
+    salida_real = dt.strptime(str(hora_real), "%H:%M:%S")
+    salida_prog = dt.strptime(str(hora_prog), "%H:%M:%S")
+    diferencia = (salida_real - salida_prog).total_seconds()
+
+    if abs(diferencia) <= 600:
+        return MENSAJE_SALIDA_REGISTRADA + " Saliste a tiempo."
+    elif diferencia < -600:
+        return MENSAJE_SALIDA_REGISTRADA + " Saliste antes de tiempo."
+    else:
+        return MENSAJE_SALIDA_REGISTRADA + " Saliste después de tu hora."
+
+def registrar_salida(cur, asistencia_id):
+    _, hora_salida = ahora_colombia()
+    cur.execute("""
+        UPDATE asistencia 
+        SET hora_salida = %s
+        WHERE id = %s
+    """, (hora_salida, asistencia_id))
+
+def cerrar_y_render(cur, conn, mensaje):
+    cur.close()
+    conn.close()
+    return render_template(TEMPLATE_REGISTRO_ENTRADA, error=mensaje)
+
+
+def registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso):
+    _, hora_actual = ahora_colombia()
+    hoy = dt.now(zona_colombia()).date()
+    try:
+        cur.execute("""
+            INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha, minutos_retraso)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (documento, metodo, hora_actual, hoy, minutos_retraso))
+        conn.commit()
+        return (
+            f"Entrada registrada con éxito. Llegaste con {minutos_retraso} minutos de retraso."
+            if minutos_retraso > 0 else
+            "Entrada registrada a tiempo. ¡Buen trabajo!"
+        )
+    except Exception as e:
+        conn.rollback()
+        return f"Ocurrió un error al registrar la entrada: {str(e).splitlines()[0]}"
