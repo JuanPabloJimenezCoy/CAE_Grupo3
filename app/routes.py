@@ -313,9 +313,9 @@ def vista_registro_salida():
         cur.close()
         conn.close()
 
-        return render_template('registro_salida.html', mensaje=mensaje)
+        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
-    return render_template('registro_salida.html')
+    return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
 @main_bp.route('/supervisor/salida', methods=['GET', 'POST'])
@@ -364,7 +364,7 @@ def vista_registro_salida_supervisor():
         if not asistencia:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error="No hay entrada registrada hoy o ya registraste la salida.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error=MENSAJE_NO_ENTRADA_HOY)
 
         asistencia_id = asistencia[0]
 
@@ -463,7 +463,7 @@ def vista_registro_salida_admin():
         if not asistencia:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error="No hay entrada registrada hoy o ya registraste la salida.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error=MENSAJE_NO_ENTRADA_HOY)
 
         asistencia_id = asistencia[0]
 
