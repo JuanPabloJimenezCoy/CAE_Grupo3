@@ -41,6 +41,7 @@ TEMPLATE_LOGIN = 'login.html'
 TEMPLATE_MIS_EMPLEADOS = 'mis_empleados.html'
 TEMPLATE_VER_SOLICITUDES_EXTRA = 'ver_mis_solicitudes_extra.html'
 SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE documento = %s"
+LOGIN_ROUTE = 'main.login'
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
@@ -108,7 +109,7 @@ def cerrar_y_render(cur, conn, mensaje):
 @main_bp.route('/empleado/entrada', methods=['GET', 'POST'])
 def vista_registro_entrada():
     if 'documento' not in session or session.get('rol') != 'empleado':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
         documento = session['documento']
@@ -149,7 +150,7 @@ def vista_registro_entrada_supervisor():
     import pytz
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
         documento = session['documento']
@@ -217,7 +218,7 @@ def vista_registro_entrada_admin():
     import pytz
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
         documento = session['documento']
@@ -284,7 +285,7 @@ def vista_registro_salida():
     import pytz
 
     if 'documento' not in session or session.get('rol') != 'empleado':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
 
@@ -387,7 +388,7 @@ def vista_registro_salida_supervisor():
     import pytz
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
 
@@ -486,7 +487,7 @@ def vista_registro_salida_admin():
     import pytz
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
 
@@ -583,7 +584,7 @@ def asignar_empleados():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
@@ -666,7 +667,7 @@ def gestionar_asignaciones():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
@@ -726,7 +727,7 @@ def ver_empleados_asignados():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
 
@@ -769,7 +770,7 @@ def ver_mi_qr():
     import base64
 
     if 'documento' not in session:
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
     url = f"http://localhost:5000/registro-qr?doc={documento}"
@@ -788,7 +789,7 @@ def asignar_horario():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
@@ -842,7 +843,7 @@ def gestionar_horarios():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
@@ -935,7 +936,7 @@ def ver_retrasos():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
 
@@ -979,7 +980,7 @@ def exportar_retrasos():
     from flask import send_file
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
     conn = get_connection()
@@ -1033,7 +1034,7 @@ def solicitar_tiempo_extra():
         }
 
     if 'documento' not in session or session.get('rol') != 'empleado':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
         documento = session['documento']
@@ -1071,7 +1072,7 @@ def revisar_tiempo_extra():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
     conn = get_connection()
@@ -1126,7 +1127,7 @@ def ver_tiempo_extra_empleado():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'empleado':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
     conn = get_connection()
@@ -1155,7 +1156,7 @@ def enviar_aviso():
     from flask import current_app
 
     if 'documento' not in session or session.get('rol') != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
@@ -1211,7 +1212,7 @@ def ver_avisos_empleado():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'empleado':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
@@ -1258,7 +1259,7 @@ def ver_avisos_admin():
     from .database import get_connection
 
     if 'documento' not in session or session.get('rol') != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
