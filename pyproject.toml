@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "control-de-acceso"
-version = "2.2.0"
+version = "2.3.0"
 description = "Sistema de control de acceso de empleados en Flask"
 authors = [
     {name = "Grupo3", email = "Grupo3@gmail.com"}

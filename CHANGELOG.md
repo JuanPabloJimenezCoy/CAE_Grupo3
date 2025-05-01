@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.2.0...v2.3.0) (2025-05-01)
+
+
+### Features
+
+* update auth.py and routes.py ([089067a](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/089067a1702e5b3a5520f5599baa50e057fae584))
+
 ## [2.2.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.1.1...v2.2.0) (2025-05-01)
 
 
