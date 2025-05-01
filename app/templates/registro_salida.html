@@ -60,16 +60,15 @@
   </div>
 
   <div class="text-center mt-4">
-    {% set rol = session.get('rol') %}
-    <a href="{% if rol == 'empleado' %}
-                  {{ url_for('main.empleado_panel') }}
-               {% elif rol == 'supervisor' %}
-                  {{ url_for('main.supervisor_panel') }}
-               {% elif rol == 'administrador' %}
-                  {{ url_for('main.admin_panel') }}
-               {% else %}
-                  {{ url_for('main.login') }}
-               {% endif %}" class="btn btn-secondary">
+    <a href="{% if current_user.role == 'empleado' %}
+                {{ url_for('main.empleado_panel') }}
+             {% elif current_user.role == 'supervisor' %}
+                {{ url_for('main.supervisor_panel') }}
+             {% elif current_user.role == 'administrador' %}
+                {{ url_for('main.admin_panel') }}
+             {% else %}
+                {{ url_for('main.login') }}
+             {% endif %}" class="btn btn-secondary">
       Volver al Panel
     </a>
   </div>

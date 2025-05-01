@@ -5,3 +5,4 @@ pytz
 qrcode[pil]
 pandas
 openpyxl
+flask-login

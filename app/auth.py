@@ -2,6 +2,11 @@ from .database import get_connection
 from datetime import datetime as dt
 import pytz
 from flask import render_template
+from flask_login import LoginManager, UserMixin
+from .database import get_connection
+from psycopg2.extras import RealDictCursor
+
+login_manager = LoginManager()
 
 LOGIN_ROUTE = 'main.login'
 MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta."
@@ -14,29 +19,45 @@ MENSAJE_SALISTE_ANTES = " Saliste antes de tiempo."
 MENSAJE_SALISTE_DESPUES = " Saliste después de tu hora."
 
 
-def buscar_usuario_por_documento(documento):
-    """
-    Busca un usuario en cualquiera de las tablas por su documento.
-    Devuelve una tupla (rol, datos) si lo encuentra, o (None, None) si no.
-    """
+class Usuario(UserMixin):
+    def __init__(self, documento, role, nombre):
+        self.id = documento  # lo que Flask-Login usa como identificador
+        self.documento = documento
+        self.role = role
+        self.nombre = nombre
+
+    def get_id(self):
+        return self.documento
+    
+@login_manager.user_loader
+def load_user(documento):
     conn = get_connection()
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    roles = [
-        ('administrador', 'administrador'),
-        ('supervisor', 'supervisor'),
-        ('empleado', 'empleado')
-    ]
-
-    for rol, tabla in roles:
-        cur.execute(f"SELECT * FROM {tabla} WHERE documento = %s", (documento,))
-        usuario = cur.fetchone()
-        if usuario:
+    for tabla, rol in [('empleado', 'empleado'), ('supervisor', 'supervisor'), ('administrador', 'administrador')]:
+        cur.execute(f"SELECT documento, nombre FROM {tabla} WHERE documento = %s", (documento,))
+        row = cur.fetchone()
+        if row:
             cur.close()
             conn.close()
-            return rol, usuario
+            return Usuario(documento=row['documento'], role=rol, nombre=row['nombre'])
 
     cur.close()
+    conn.close()
+    return None
+
+def buscar_usuario_por_documento(documento):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    tablas = ['empleado', 'supervisor', 'administrador']
+    for tabla in tablas:
+        cur.execute(f"SELECT documento, nombre FROM {tabla} WHERE documento = %s", (documento,))
+        usuario = cur.fetchone()
+        if usuario:
+            conn.close()
+            return tabla, usuario  # usuario será un dict
+
     conn.close()
     return None, None
 

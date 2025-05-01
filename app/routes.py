@@ -3,6 +3,10 @@ from .auth import buscar_usuario_por_documento
 from .auth import cerrar_y_render, registrar_asistencia_y_mensaje, obtener_asistencia_abierta, calcular_mensaje_salida, registrar_salida
 from .auth import verificar_credencial, obtener_asistencia_sin_salida, obtener_hora_salida_programada, comparar_salida_programada
 from .auth import validar_credencial_generico, cerrar_y_render_salida, calcular_mensaje_salida_admin
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash, send_from_directory
+from flask_login import login_user, logout_user, login_required, current_user
+from .auth import buscar_usuario_por_documento, Usuario
+from flask_login import logout_user, login_required
 from datetime import date
 from datetime import datetime as dt
 from datetime import datetime
@@ -60,8 +64,12 @@ def login():
         rol, usuario = buscar_usuario_por_documento(documento)
 
         if usuario:
-            session['documento'] = documento
-            session['rol'] = rol
+            user = Usuario(
+                documento=documento,
+                role=rol,
+                nombre=usuario['nombre']
+            )
+            login_user(user)
 
             if rol == 'empleado':
                 return redirect(url_for('main.empleado_panel'))
@@ -75,18 +83,34 @@ def login():
     return render_template(TEMPLATE_LOGIN)
 
 
+@main_bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('main.login'))
+
+
 @main_bp.route('/panel/empleado')
+@login_required
 def empleado_panel():
+    if current_user.role != 'empleado':
+        return redirect(url_for('main.login'))
     return render_template(TEMPLATE_PANEL_EMPLEADO)
 
 
 @main_bp.route('/panel/supervisor')
+@login_required
 def supervisor_panel():
+    if current_user.role != 'supervisor':
+        return redirect(url_for('main.login'))
     return render_template(TEMPLATE_PANEL_SUPERVISOR)
 
 
 @main_bp.route('/panel/admin')
+@login_required
 def admin_panel():
+    if current_user.role != 'administrador':
+        return redirect(url_for('main.login'))
     return render_template(TEMPLATE_PANEL_ADMIN)
 
 
@@ -116,12 +140,13 @@ def cerrar_y_render(cur, conn, mensaje):
 
 
 @main_bp.route('/empleado/entrada', methods=['GET', 'POST'])
+@login_required
 def vista_registro_entrada():
-    if 'documento' not in session or session.get('rol') != 'empleado':
+    if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
-        documento = session['documento']
+        documento = current_user.documento
         metodo = request.form['metodo']
         valor = request.form['valor']
 
@@ -142,7 +167,10 @@ def vista_registro_entrada():
             return cerrar_y_render(cur, conn, "Hoy no es uno de tus días laborales.")
 
         if not esta_en_rango_horario(horario['hora_entrada'], horario['hora_salida']):
-            return cerrar_y_render(cur, conn, f"Solo puedes registrar entrada entre {horario['hora_entrada']} y {horario['hora_salida']}.")
+            return cerrar_y_render(
+                cur, conn,
+                f"Solo puedes registrar entrada entre {horario['hora_entrada']} y {horario['hora_salida']}."
+            )
 
         minutos_retraso = calcular_retraso(horario['hora_entrada'])
         mensaje = registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso)
@@ -153,20 +181,16 @@ def vista_registro_entrada():
 
 
 @main_bp.route('/supervisor/entrada', methods=['GET', 'POST'])
+@login_required
 def vista_registro_entrada_supervisor():
-    from .database import get_connection
-    from datetime import datetime
-    import pytz
-
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
-        documento = session['documento']
+        documento = current_user.documento
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        # Obtener hora y fecha local sin microsegundos
         zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
         hora_local = ahora.time().replace(microsecond=0)
@@ -175,7 +199,6 @@ def vista_registro_entrada_supervisor():
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar si ya hay registro hoy
         cur.execute("""
             SELECT * FROM asistencia 
             WHERE documento_empleado = %s AND fecha = %s
@@ -187,7 +210,6 @@ def vista_registro_entrada_supervisor():
             conn.close()
             return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy supervisor.")
 
-        # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
         cur.execute(f"""
             SELECT * FROM supervisor 
@@ -201,7 +223,6 @@ def vista_registro_entrada_supervisor():
             return render_template(TEMPLATE_REGISTRO_ENTRADA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         try:
-            # Insertar asistencia
             cur.execute("""
                 INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha)
                 VALUES (%s, %s, %s, %s)
@@ -217,7 +238,7 @@ def vista_registro_entrada_supervisor():
 
         return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
-    return render_template(TEMPLATE_REGISTRO_ENTRADA)
+    return render_template(TEMPLATE_REGISTRO_ENTRADA)   
 
 
 @main_bp.route('/admin/entrada', methods=['GET', 'POST'])
@@ -287,12 +308,15 @@ def vista_registro_entrada_admin():
     return render_template(TEMPLATE_REGISTRO_ENTRADA)
 
 
+from flask_login import login_required, current_user
+
 @main_bp.route('/empleado/salida', methods=['GET', 'POST'])
+@login_required
 def vista_registro_salida():
-    if 'documento' not in session or session.get('rol') != 'empleado':
+    if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
 
     if request.method == 'POST':
         metodo = request.form['metodo']
@@ -321,11 +345,12 @@ def vista_registro_salida():
 
 
 @main_bp.route('/supervisor/salida', methods=['GET', 'POST'])
+@login_required
 def vista_registro_salida_supervisor():
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
 
     if request.method == 'POST':
         metodo = request.form['metodo']
@@ -359,17 +384,23 @@ def vista_registro_salida_supervisor():
 
         cur.execute("UPDATE asistencia SET hora_salida = %s WHERE id = %s", (hora_local, asistencia_id))
         conn.commit()
+
+        cur.close()
+        conn.close()
+
         return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
     return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
 @main_bp.route('/admin/salida', methods=['GET', 'POST'])
+@login_required
 def vista_registro_salida_admin():
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
+
     if request.method != 'POST':
         return render_template(TEMPLATE_REGISTRO_SALIDA)
 
@@ -397,10 +428,11 @@ def vista_registro_salida_admin():
 
 
 @main_bp.route('/admin/asignar-empleados', methods=['GET', 'POST'])
+@login_required
 def asignar_empleados():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
@@ -411,7 +443,6 @@ def asignar_empleados():
         empleados_seleccionados = request.form.getlist('empleado_ids')
 
         if not empleados_seleccionados:
-            # Volvemos a cargar supervisores y empleados NO asignados
             cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
             supervisores = cur.fetchall()
             cur.execute("""
@@ -431,7 +462,6 @@ def asignar_empleados():
                 empleados=empleados
             )
 
-        # Insertar asignaciones sin duplicados
         for empleado_id in empleados_seleccionados:
             cur.execute("""
                 INSERT INTO empleado_supervisor (id_empleado, id_supervisor)
@@ -441,7 +471,6 @@ def asignar_empleados():
 
         conn.commit()
 
-        # Volvemos a cargar supervisores y empleados restantes
         cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
         supervisores = cur.fetchall()
         cur.execute("""
@@ -462,7 +491,7 @@ def asignar_empleados():
             empleados=empleados
         )
 
-    # GET: mostrar lista de supervisores y empleados no asignados
+    # GET: mostrar supervisores y empleados no asignados
     cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
     supervisores = cur.fetchall()
     cur.execute("""
@@ -480,10 +509,11 @@ def asignar_empleados():
 
 
 @main_bp.route('/admin/gestionar-asignaciones', methods=['GET', 'POST'])
+@login_required
 def gestionar_asignaciones():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
@@ -540,18 +570,18 @@ def gestionar_asignaciones():
 
 
 @main_bp.route('/supervisor/mis-empleados')
+@login_required
 def ver_empleados_asignados():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Obtener el ID del supervisor desde su documento
     cur.execute("""
         SELECT id_supervisor FROM supervisor WHERE documento = %s
     """, (documento,))
@@ -564,7 +594,6 @@ def ver_empleados_asignados():
 
     id_supervisor = result[0]
 
-    # Obtener empleados asignados
     cur.execute("""
         SELECT e.nombre, e.apellido
         FROM empleado_supervisor es
@@ -579,20 +608,16 @@ def ver_empleados_asignados():
 
     return render_template(TEMPLATE_MIS_EMPLEADOS, empleados=empleados)
 
-
 @main_bp.route('/mi-qr')
+@login_required
 def ver_mi_qr():
     import qrcode
     import io
     import base64
 
-    if 'documento' not in session:
-        return redirect(url_for(LOGIN_ROUTE))
-
-    documento = session['documento']
+    documento = current_user.documento
     url = f"http://localhost:5000/registro-qr?doc={documento}"
 
-    # Generar QR en memoria
     qr = qrcode.make(url)
     buffer = io.BytesIO()
     qr.save(buffer, format='PNG')
@@ -602,10 +627,11 @@ def ver_mi_qr():
 
 
 @main_bp.route('/admin/asignar-horario', methods=['GET', 'POST'])
+@login_required
 def asignar_horario():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
@@ -620,11 +646,14 @@ def asignar_horario():
         if not dias:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_ASIGNAR_HORARIO, empleados=[], mensaje="Debe seleccionar al menos un día.")
+            return render_template(
+                TEMPLATE_ASIGNAR_HORARIO,
+                empleados=[],
+                mensaje="Debe seleccionar al menos un día."
+            )
 
-        dias_string = ''.join(dias)  # Ej: "lmvj"
+        dias_string = ''.join(dias)
 
-        # Insertar o actualizar
         cur.execute("""
             INSERT INTO horarios (id_empleado, dias_laborales, hora_entrada, hora_salida)
             VALUES (%s, %s, %s, %s)
@@ -656,10 +685,11 @@ def asignar_horario():
 
 
 @main_bp.route('/admin/gestionar-horarios', methods=['GET', 'POST'])
+@login_required
 def gestionar_horarios():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
@@ -682,7 +712,6 @@ def gestionar_horarios():
 
         conn.commit()
 
-    # Obtener empleados con horarios
     cur.execute("""
         SELECT e.id_empleado, e.nombre, e.apellido, h.hora_entrada, h.hora_salida, h.dias_laborales
         FROM horarios h
@@ -749,18 +778,18 @@ def esta_en_horario(documento):
 
 
 @main_bp.route('/supervisor/retrasos')
+@login_required
 def ver_retrasos():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Obtener id_supervisor desde su documento
     cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento,))
     result = cur.fetchone()
     if not result:
@@ -770,7 +799,6 @@ def ver_retrasos():
 
     id_supervisor = result[0]
 
-    # Obtener empleados asignados y sus retrasos
     cur.execute("""
         SELECT e.nombre, e.apellido,
                COUNT(a.minutos_retraso) AS veces_tarde,
@@ -791,23 +819,23 @@ def ver_retrasos():
 
 
 @main_bp.route('/supervisor/retrasos/exportar')
+@login_required
 def exportar_retrasos():
     import pandas as pd
     from io import BytesIO
     from flask import send_file
+    from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
     conn = get_connection()
     cur = conn.cursor()
 
-    # Obtener id del supervisor
     cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento,))
     id_supervisor = cur.fetchone()[0]
 
-    # Obtener datos
     cur.execute("""
         SELECT e.nombre, e.apellido,
                COUNT(a.minutos_retraso) AS veces_tarde,
@@ -824,10 +852,8 @@ def exportar_retrasos():
     cur.close()
     conn.close()
 
-    # Crear DataFrame
     df = pd.DataFrame(rows, columns=['Nombre', 'Apellido', 'Veces tarde', 'Minutos de retraso'])
 
-    # Guardar a Excel en memoria
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Retrasos')
@@ -838,6 +864,7 @@ def exportar_retrasos():
 
 
 @main_bp.route('/empleado/tiempo-extra', methods=['GET', 'POST'])
+@login_required
 def solicitar_tiempo_extra():
     from .database import get_connection
     from flask import current_app
@@ -850,11 +877,12 @@ def solicitar_tiempo_extra():
             'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'
         }
 
-    if 'documento' not in session or session.get('rol') != 'empleado':
+    if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
+    documento = current_user.documento
+
     if request.method == 'POST':
-        documento = session['documento']
         fecha = request.form['fecha']
         hora_inicio = request.form['hora_inicio']
         hora_fin = request.form['hora_fin']
@@ -884,14 +912,16 @@ def solicitar_tiempo_extra():
 
     return render_template(TEMPLATE_SOLICITAR_TIEMPO_EXTRA)
 
+
 @main_bp.route('/supervisor/tiempo-extra', methods=['GET', 'POST'])
+@login_required
 def revisar_tiempo_extra():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
     conn = get_connection()
     cur = conn.cursor()
 
@@ -911,7 +941,6 @@ def revisar_tiempo_extra():
 
         return redirect(url_for('main.revisar_tiempo_extra'))
 
-    # Si es GET: mostrar solicitudes
     cur.execute("""
         SELECT te.id, e.nombre, e.apellido, te.fecha, te.hora_inicio, te.hora_fin,
                te.motivo, te.archivo_justificacion, te.estado
@@ -932,6 +961,7 @@ def revisar_tiempo_extra():
 
 
 @main_bp.route('/descargar/justificativo/<filename>')
+@login_required
 def descargar_justificativo(filename):
     import os
     from flask import current_app
@@ -940,13 +970,14 @@ def descargar_justificativo(filename):
 
 
 @main_bp.route('/empleado/mis_solicitudes_tiempo-extra', methods=['GET'])
+@login_required
 def ver_tiempo_extra_empleado():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'empleado':
+    if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = session['documento']
+    documento = current_user.documento
     conn = get_connection()
     cur = conn.cursor()
 
@@ -966,19 +997,19 @@ def ver_tiempo_extra_empleado():
 
 
 @main_bp.route('/supervisor/avisos', methods=['GET', 'POST'])
+@login_required
 def enviar_aviso():
     from .database import get_connection
     import os
     from werkzeug.utils import secure_filename
     from flask import current_app
 
-    if 'documento' not in session or session.get('rol') != 'supervisor':
+    if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
+    documento_supervisor = current_user.documento
     conn = get_connection()
     cur = conn.cursor()
-
-    documento_supervisor = session['documento']
 
     if request.method == 'POST':
         id_empleado = request.form.get('id_empleado')
@@ -987,13 +1018,9 @@ def enviar_aviso():
         if id_empleado and archivo:
             filename = secure_filename(archivo.filename)
             ruta_guardado = os.path.join(current_app.root_path, 'uploads', 'avisos')
-
-            if not os.path.exists(ruta_guardado):
-                os.makedirs(ruta_guardado)
-
+            os.makedirs(ruta_guardado, exist_ok=True)
             archivo.save(os.path.join(ruta_guardado, filename))
 
-            # Buscar el id_supervisor
             cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento_supervisor,))
             supervisor = cur.fetchone()
 
@@ -1009,7 +1036,6 @@ def enviar_aviso():
             else:
                 flash('Supervisor no encontrado.', 'danger')
 
-    # ✅ CORREGIDO: traer solo empleados a su cargo
     cur.execute("""
         SELECT e.id_empleado, e.nombre, e.apellido
         FROM empleado e
@@ -1024,32 +1050,30 @@ def enviar_aviso():
 
     return render_template(TEMPLATE_ENVIAR_AVISOS, empleados=empleados)
 
+
 @main_bp.route('/empleado/avisos', methods=['GET'])
+@login_required
 def ver_avisos_empleado():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'empleado':
+    if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Obtener el ID del empleado que está logueado
-    documento_empleado = session['documento']
-
+    documento_empleado = current_user.documento
     cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento_empleado,))
     empleado = cur.fetchone()
 
     if empleado:
         id_empleado = empleado[0]
-
         cur.execute("""
             SELECT fecha, archivo_justificativo
             FROM avisos
             WHERE id_empleado = %s
             ORDER BY fecha DESC
         """, (id_empleado,))
-
         avisos = cur.fetchall()
     else:
         avisos = []
@@ -1061,10 +1085,10 @@ def ver_avisos_empleado():
 
 
 @main_bp.route('/uploads/avisos/<path:filename>')
+@login_required
 def descargar_aviso(filename):
     import os
-    from flask import current_app
-    from flask import send_from_directory
+    from flask import current_app, send_from_directory
 
     ruta = os.path.join(current_app.root_path, 'uploads', 'avisos')
     return send_from_directory(ruta, filename)
@@ -1072,10 +1096,11 @@ def descargar_aviso(filename):
 
 
 @main_bp.route('/admin/avisos', methods=['GET'])
+@login_required
 def ver_avisos_admin():
     from .database import get_connection
 
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     conn = get_connection()

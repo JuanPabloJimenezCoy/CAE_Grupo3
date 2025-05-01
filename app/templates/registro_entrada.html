@@ -60,11 +60,11 @@
   </div>
 
   <div class="text-center mt-4">
-    <a href="{% if session['rol'] == 'empleado' %}
+    <a href="{% if current_user.role == 'empleado' %}
                 {{ url_for('main.empleado_panel') }}
-             {% elif session['rol'] == 'supervisor' %}
+             {% elif current_user.role == 'supervisor' %}
                 {{ url_for('main.supervisor_panel') }}
-             {% elif session['rol'] == 'administrador' %}
+             {% elif current_user.role == 'administrador' %}
                 {{ url_for('main.admin_panel') }}
              {% else %}
                 {{ url_for('main.login') }}
