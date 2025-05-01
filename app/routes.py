@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from .auth import buscar_usuario_por_documento
 from .auth import cerrar_y_render, registrar_asistencia_y_mensaje, obtener_asistencia_abierta, calcular_mensaje_salida, registrar_salida
 from .auth import verificar_credencial, obtener_asistencia_sin_salida, obtener_hora_salida_programada, comparar_salida_programada
+from .auth import validar_credencial_generico, cerrar_y_render_salida, calcular_mensaje_salida_admin
 from datetime import date
 from datetime import datetime as dt
 from datetime import datetime
@@ -365,101 +366,34 @@ def vista_registro_salida_supervisor():
 
 @main_bp.route('/admin/salida', methods=['GET', 'POST'])
 def vista_registro_salida_admin():
-    from .database import get_connection
-    from datetime import datetime
-    import pytz
-
     if 'documento' not in session or session.get('rol') != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     documento = session['documento']
+    if request.method != 'POST':
+        return render_template(TEMPLATE_REGISTRO_SALIDA)
 
-    if request.method == 'POST':
-        metodo = request.form['metodo']
-        valor = request.form['valor']
+    metodo = request.form['metodo']
+    valor = request.form['valor']
 
-        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
-        ahora = datetime.now(zona_colombia)
-        hora_local = ahora.time().replace(microsecond=0)
-        hoy = ahora.date()
+    conn = get_connection()
+    cur = conn.cursor()
 
-        conn = get_connection()
-        cur = conn.cursor()
+    if not validar_credencial_generico(cur, documento, metodo, valor, 'administrador'):
+        return cerrar_y_render_salida(cur, conn, MENSAJE_PIN_INCORRECTO)
 
-        # Verificar PIN o tarjeta
-        campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
-        cur.execute(f"""
-            SELECT * FROM administrador 
-            WHERE documento = %s AND {campo} = %s
-        """, (documento, valor))
-        admin = cur.fetchone()
+    asistencia_id = obtener_asistencia_abierta(cur, documento)
+    if not asistencia_id:
+        return cerrar_y_render_salida(cur, conn, MENSAJE_NO_ENTRADA_HOY)
 
-        if not admin:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
+    mensaje = calcular_mensaje_salida_admin(cur, documento)
 
-        # Verificar asistencia del día sin salida
-        cur.execute("""
-            SELECT id FROM asistencia 
-            WHERE documento_empleado = %s AND fecha = %s AND hora_salida IS NULL
-        """, (documento, hoy))
-        asistencia = cur.fetchone()
+    registrar_salida(cur, asistencia_id)
+    conn.commit()
+    cur.close()
+    conn.close()
 
-        if not asistencia:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error=MENSAJE_NO_ENTRADA_HOY)
-
-        asistencia_id = asistencia[0]
-
-        mensaje = MENSAJE_SALIDA_REGISTRADA
-
-        try:
-            # Intentar obtener hora de salida programada
-            cur.execute("""
-                SELECT h.hora_salida
-                FROM horarios h
-                JOIN administrador a ON h.id_empleado = a.id_administrador
-                WHERE a.documento = %s
-            """, (documento,))
-            resultado = cur.fetchone()
-
-            if resultado:
-                hora_salida_prog = resultado[0]
-                from datetime import datetime as dt
-                salida_real = dt.strptime(str(hora_local), "%H:%M:%S")
-                salida_prog = dt.strptime(str(hora_salida_prog), "%H:%M:%S")
-
-                diferencia = (salida_real - salida_prog).total_seconds()
-
-                if abs(diferencia) <= 600:
-                    mensaje += " Saliste a tiempo."
-                elif diferencia < -600:
-                    mensaje += " Saliste antes de tiempo."
-                else:
-                    mensaje += " Saliste después de tu hora."
-            else:
-                mensaje += ""
-
-        except Exception as e:
-            conn.rollback()
-            mensaje += " "
-
-        # Registrar la salida
-        cur.execute("""
-            UPDATE asistencia 
-            SET hora_salida = %s
-            WHERE id = %s
-        """, (hora_local, asistencia_id))
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
-
-    return render_template(TEMPLATE_REGISTRO_SALIDA)
+    return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
 
 @main_bp.route('/admin/asignar-empleados', methods=['GET', 'POST'])

@@ -193,3 +193,37 @@ def comparar_salida_programada(hora_prog, hora_real, fecha):
         return " Saliste antes de tiempo."
     else:
         return " Saliste después de tu hora."
+    
+def validar_credencial_generico(cur, documento, metodo, valor, tabla):
+    campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
+    cur.execute(f"SELECT 1 FROM {tabla} WHERE documento = %s AND {campo} = %s", (documento, valor))
+    return cur.fetchone() is not None
+
+def calcular_mensaje_salida_admin(cur, documento):
+    _, hora_real = ahora_colombia()
+    cur.execute("""
+        SELECT h.hora_salida
+        FROM horarios h
+        JOIN administrador a ON h.id_empleado = a.id_admin
+        WHERE a.documento = %s
+    """, (documento,))
+    row = cur.fetchone()
+    if not row:
+        return MENSAJE_SALIDA_REGISTRADA
+
+    hora_prog = row[0]
+    salida_real = dt.strptime(str(hora_real), "%H:%M:%S")
+    salida_prog = dt.strptime(str(hora_prog), "%H:%M:%S")
+    diferencia = (salida_real - salida_prog).total_seconds()
+
+    if abs(diferencia) <= 600:
+        return MENSAJE_SALIDA_REGISTRADA + " Saliste a tiempo."
+    elif diferencia < -600:
+        return MENSAJE_SALIDA_REGISTRADA + " Saliste antes de tiempo."
+    else:
+        return MENSAJE_SALIDA_REGISTRADA + " Saliste después de tu hora."
+
+def cerrar_y_render_salida(cur, conn, mensaje):
+    cur.close()
+    conn.close()
+    return render_template(TEMPLATE_REGISTRO_SALIDA, error=mensaje)
