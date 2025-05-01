@@ -19,7 +19,7 @@
 
       <div class="mb-4">
         <label for="supervisor" class="form-label">Supervisor:</label>
-        <select name="supervisor_id" class="form-select" required>
+        <select id="supervisor" name="supervisor_id" class="form-select" required>
           {% for supervisor in supervisores %}
             <option value="{{ supervisor[0] }}">{{ supervisor[1] }} {{ supervisor[2] }}</option>
           {% endfor %}
