@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.4](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.4.3...v2.4.4) (2025-05-01)
+
+
+### Bug Fixes
+
+* update asignar_empleados.html ([12e5a76](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/12e5a76698ff76736179561ec6f3ffbe29edef55))
+
 ## [2.4.3](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.4.2...v2.4.3) (2025-05-01)
 
 
