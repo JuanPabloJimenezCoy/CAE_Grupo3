@@ -18,8 +18,8 @@
     <form method="POST" class="w-50 p-4 bg-white rounded shadow">
 
       <div class="mb-3">
-        <label class="form-label">Seleccionar Empleado:</label>
-        <select name="empleado_id" class="form-select" required>
+        <label for="empleado_id" class="form-label">Seleccionar Empleado:</label>
+        <select id="empleado_id" name="empleado_id" class="form-select" required>
           {% for emp in empleados %}
             <option value="{{ emp[0] }}">{{ emp[1] }} {{ emp[2] }}</option>
           {% endfor %}
@@ -27,17 +27,17 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Hora de Entrada:</label>
-        <input type="time" name="hora_entrada" class="form-control" required>
+        <label for="hora_entrada" class="form-label">Hora de Entrada:</label>
+        <input type="time" id="hora_entrada" name="hora_entrada" class="form-control" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Hora de Salida:</label>
-        <input type="time" name="hora_salida" class="form-control" required>
+        <label for="hora_salida" class="form-label">Hora de Salida:</label>
+        <input type="time" id="hora_salida" name="hora_salida" class="form-control" required>
       </div>
 
       <div class="mb-4">
-        <label class="form-label">Días de Trabajo:</label><br>
+        <p class="form-label mb-2">Días de Trabajo:</p>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="dias_laborales" value="l" id="lunes">
           <label class="form-check-label" for="lunes">Lunes</label>
