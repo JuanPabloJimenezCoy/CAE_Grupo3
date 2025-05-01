@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.3.0...v2.3.1) (2025-05-01)
+
+
+### Bug Fixes
+
+* update auth.py ([29431ab](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/29431abe581f97181bc1858bffc8b39b8767d1fe))
+
 ## [2.3.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.2.0...v2.3.0) (2025-05-01)
 
 
