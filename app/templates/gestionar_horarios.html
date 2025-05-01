@@ -25,17 +25,17 @@
         <input type="hidden" name="empleado_id" value="{{ h[0] }}">
 
         <div class="mb-3">
-          <label class="form-label">Hora de Entrada:</label>
-          <input type="time" name="hora_entrada" value="{{ h[3] }}" class="form-control" required>
+          <label for="hora_entrada_{{ h[0] }}" class="form-label">Hora de Entrada:</label>
+          <input type="time" id="hora_entrada_{{ h[0] }}" name="hora_entrada" value="{{ h[3] }}" class="form-control" required>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Hora de Salida:</label>
-          <input type="time" name="hora_salida" value="{{ h[4] }}" class="form-control" required>
+          <label for="hora_salida_{{ h[0] }}" class="form-label">Hora de Salida:</label>
+          <input type="time" id="hora_salida_{{ h[0] }}" name="hora_salida" value="{{ h[4] }}" class="form-control" required>
         </div>
 
         <div class="mb-4">
-          <label class="form-label">Días Laborales:</label><br>
+          <p class="form-label mb-2">Días Laborales:</p>
           {% for letra, dia in [('l', 'Lunes'), ('m', 'Martes'), ('w', 'Miércoles'), ('j', 'Jueves'), ('v', 'Viernes'), ('s', 'Sábado'), ('d', 'Domingo')] %}
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="dias_laborales" value="{{ letra }}" id="{{ letra }}{{ h[0] }}"
