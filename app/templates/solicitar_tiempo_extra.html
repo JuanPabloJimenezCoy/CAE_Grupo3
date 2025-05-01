@@ -18,28 +18,28 @@
     <form method="POST" enctype="multipart/form-data" class="w-50 p-4 bg-white rounded shadow">
 
       <div class="mb-3">
-        <label class="form-label">Fecha:</label>
-        <input type="date" name="fecha" class="form-control" required>
+        <label for="fecha" class="form-label">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" class="form-control" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Hora de Inicio:</label>
-        <input type="time" name="hora_inicio" class="form-control" required>
+        <label for="hora_inicio" class="form-label">Hora de Inicio:</label>
+        <input type="time" id="hora_inicio" name="hora_inicio" class="form-control" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Hora de Fin:</label>
-        <input type="time" name="hora_fin" class="form-control" required>
+        <label for="hora_fin" class="form-label">Hora de Fin:</label>
+        <input type="time" id="hora_fin" name="hora_fin" class="form-control" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Motivo:</label>
-        <textarea name="motivo" rows="4" class="form-control"></textarea>
+        <label for="motivo" class="form-label">Motivo:</label>
+        <textarea id="motivo" name="motivo" rows="4" class="form-control"></textarea>
       </div>
 
       <div class="mb-4">
-        <label class="form-label">Adjuntar Justificativo (PDF, Imagen, Word):</label>
-        <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="form-control">
+        <label for="archivo" class="form-label">Adjuntar Justificativo (PDF, Imagen, Word):</label>
+        <input type="file" id="archivo" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="form-control">
       </div>
 
       <div class="d-grid gap-2 mb-3">
