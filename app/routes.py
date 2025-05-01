@@ -43,6 +43,7 @@ TEMPLATE_VER_SOLICITUDES_EXTRA = 'ver_mis_solicitudes_extra.html'
 SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE documento = %s"
 LOGIN_ROUTE = 'main.login'
 PIN_O_TARJETA_MESSAGE_INCORRECTA = "PIN o tarjeta incorrecta"
+ZONA_HORARIA_CO = 'America/Bogota'
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
@@ -159,7 +160,7 @@ def vista_registro_entrada_supervisor():
         valor = request.form['valor']
 
         # Obtener hora y fecha local sin microsegundos
-        zona_colombia = pytz.timezone('America/Bogota')
+        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
         hora_local = ahora.time().replace(microsecond=0)
         hoy = ahora.date()
@@ -226,7 +227,7 @@ def vista_registro_entrada_admin():
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        zona_colombia = pytz.timezone('America/Bogota')
+        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
         hora_local = ahora.time().replace(microsecond=0)  # ✅ sin microsegundos
         hoy = ahora.date()
@@ -294,7 +295,7 @@ def vista_registro_salida():
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        zona_colombia = pytz.timezone('America/Bogota')
+        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
         hora_local = ahora.time().replace(microsecond=0)
         hoy = ahora.date()
@@ -397,7 +398,7 @@ def vista_registro_salida_supervisor():
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        zona_colombia = pytz.timezone('America/Bogota')
+        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
         hora_local = ahora.time().replace(microsecond=0)
         hoy = ahora.date()
@@ -496,7 +497,7 @@ def vista_registro_salida_admin():
         metodo = request.form['metodo']
         valor = request.form['valor']
 
-        zona_colombia = pytz.timezone('America/Bogota')
+        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
         hora_local = ahora.time().replace(microsecond=0)
         hoy = ahora.date()
@@ -915,7 +916,7 @@ def esta_en_horario(documento):
     dias_str, hora_entrada, hora_salida = horario
 
     # Hora y día actual en Colombia
-    zona_colombia = pytz.timezone('America/Bogota')
+    zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
     ahora = datetime.now(zona_colombia)
     dia_actual = ahora.strftime('%a').lower()[0]  # 'l', 'm', 'w', etc.
     hora_actual = ahora.time()
