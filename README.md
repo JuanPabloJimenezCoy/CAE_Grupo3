@@ -33,6 +33,8 @@ Sistema web de control de acceso para empleados, supervisores y administradores,
   - `qrcode[pil]`
   - `pandas`
   - `openpyxl`
+  - `flask-login`
+
 
 ---
 
@@ -45,6 +47,8 @@ Sistema web de control de acceso para empleados, supervisores y administradores,
 -   `pip install qrcode[pil]`
 -   `pip install pandas`
 -   `pip install openpyxl`
+-   `pip install flask-login`
+
 
 ---
 
