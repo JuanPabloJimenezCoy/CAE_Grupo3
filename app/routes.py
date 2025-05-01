@@ -42,6 +42,7 @@ TEMPLATE_MIS_EMPLEADOS = 'mis_empleados.html'
 TEMPLATE_VER_SOLICITUDES_EXTRA = 'ver_mis_solicitudes_extra.html'
 SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE documento = %s"
 LOGIN_ROUTE = 'main.login'
+PIN_O_TARJETA_MESSAGE_INCORRECTA = "PIN o tarjeta incorrecta"
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
@@ -123,7 +124,7 @@ def vista_registro_entrada():
             return cerrar_y_render(cur, conn, "Ya registraste tu entrada hoy empleado?")
 
         if not validar_credencial(cur, documento, metodo, valor):
-            return cerrar_y_render(cur, conn, "PIN o tarjeta incorrecta.")
+            return cerrar_y_render(cur, conn, PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         horario = obtener_horario(cur, documento)
         if not horario:
@@ -189,7 +190,7 @@ def vista_registro_entrada_supervisor():
         if not supervisor:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         try:
             # Insertar asistencia
@@ -256,7 +257,7 @@ def vista_registro_entrada_admin():
         if not admin:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         try:
             # Insertar asistencia con fecha local
@@ -312,7 +313,7 @@ def vista_registro_salida():
         if not empleado:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         # Verificar asistencia del día sin salida
         cur.execute("""
@@ -415,7 +416,7 @@ def vista_registro_salida_supervisor():
         if not supervisor:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         # Verificar asistencia del día sin salida
         cur.execute("""
@@ -514,7 +515,7 @@ def vista_registro_salida_admin():
         if not admin:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_SALIDA, error="PIN o tarjeta incorrecta.")
+            return render_template(TEMPLATE_REGISTRO_SALIDA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
 
         # Verificar asistencia del día sin salida
         cur.execute("""
