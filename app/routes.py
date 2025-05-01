@@ -51,7 +51,6 @@ SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE d
 LOGIN_ROUTE = 'main.login'
 PIN_O_TARJETA_MESSAGE_INCORRECTA = "PIN o tarjeta incorrecta"
 ZONA_HORARIA_CO = 'America/Bogota'
-LOGIN_ROUTE = 'main.login'
 MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta."
 MENSAJE_NO_ENTRADA_HOY = "No hay entrada registrada hoy o ya registraste la salida."
 MENSAJE_SALIDA_REGISTRADA = "Salida registrada con éxito."
@@ -87,14 +86,14 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.login'))
+    return redirect(url_for(LOGIN_ROUTE))
 
 
 @main_bp.route('/panel/empleado')
 @login_required
 def empleado_panel():
     if current_user.role != 'empleado':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
     return render_template(TEMPLATE_PANEL_EMPLEADO)
 
 
@@ -102,7 +101,7 @@ def empleado_panel():
 @login_required
 def supervisor_panel():
     if current_user.role != 'supervisor':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
     return render_template(TEMPLATE_PANEL_SUPERVISOR)
 
 
@@ -110,7 +109,7 @@ def supervisor_panel():
 @login_required
 def admin_panel():
     if current_user.role != 'administrador':
-        return redirect(url_for('main.login'))
+        return redirect(url_for(LOGIN_ROUTE))
     return render_template(TEMPLATE_PANEL_ADMIN)
 
 
