@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.3.1...v2.4.0) (2025-05-01)
+
+
+### Features
+
+* update flask-login ([daf3819](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/daf381934d041c6e8464c57610cd7a6a2ecde2fc))
+
 ## [2.3.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.3.0...v2.3.1) (2025-05-01)
 
 
