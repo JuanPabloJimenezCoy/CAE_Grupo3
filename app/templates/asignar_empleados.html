@@ -27,7 +27,7 @@
       </div>
 
       <div class="mb-4">
-        <label class="form-label">Empleados:</label><br>
+        <p class="form-label mb-2">Empleados:</p>
         {% for empleado in empleados %}
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="empleado_ids" value="{{ empleado[0] }}" id="empleado{{ empleado[0] }}">
