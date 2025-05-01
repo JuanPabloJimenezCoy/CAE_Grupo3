@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.4.4...v2.4.5) (2025-05-01)
+
+
+### Bug Fixes
+
+* update asignar_horario.html ([eed77b5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/eed77b5687c89d0234134d4f89525fc8da594f23))
+* update gestionar_horarios.html ([06a0518](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/06a05185d1131fffb6c9bac9c918fb7f08e8977e))
+
 ## [2.4.4](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.4.3...v2.4.4) (2025-05-01)
 
 
