@@ -8,6 +8,7 @@ MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta."
 MENSAJE_NO_ENTRADA_HOY = "No hay entrada registrada hoy o ya registraste la salida."
 MENSAJE_SALIDA_REGISTRADA = "Salida registrada con éxito."
 TEMPLATE_REGISTRO_ENTRADA = 'registro_entrada.html'
+TEMPLATE_REGISTRO_SALIDA = 'registro_salida.html'
 
 
 def buscar_usuario_por_documento(documento):
@@ -152,3 +153,43 @@ def registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso
     except Exception as e:
         conn.rollback()
         return f"Ocurrió un error al registrar la entrada: {str(e).splitlines()[0]}"
+    
+def verificar_credencial(cur, documento, metodo, valor, tabla):
+    campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
+    cur.execute(f"SELECT * FROM {tabla} WHERE documento = %s AND {campo} = %s", (documento, valor))
+    return cur.fetchone()
+
+def obtener_asistencia_sin_salida(cur, documento, fecha):
+    cur.execute("""
+        SELECT id FROM asistencia 
+        WHERE documento_empleado = %s AND fecha = %s AND hora_salida IS NULL
+    """, (documento, fecha))
+    return cur.fetchone()
+
+def obtener_hora_salida_programada(cur, documento, tabla_id, tabla):
+    cur.execute(f"""
+        SELECT h.hora_salida
+        FROM horarios h
+        JOIN {tabla} t ON h.id_empleado = t.{tabla_id}
+        WHERE t.documento = %s
+    """, (documento,))
+    result = cur.fetchone()
+    return result[0] if result else None
+
+def comparar_salida_programada(hora_prog, hora_real, fecha):
+    salida_real = dt.strptime(str(hora_real), "%H:%M:%S")
+    salida_prog = dt.strptime(str(hora_prog), "%H:%M:%S")
+
+    if hora_prog >= hora_real:
+        diferencia = (salida_real - salida_prog).total_seconds()
+    else:
+        salida_prog_completa = dt.combine(fecha, hora_prog)
+        salida_real_completa = dt.combine(fecha, hora_real)
+        diferencia = (salida_real_completa - salida_prog_completa).total_seconds()
+
+    if abs(diferencia) <= 600:
+        return " Saliste a tiempo."
+    elif diferencia < -600:
+        return " Saliste antes de tiempo."
+    else:
+        return " Saliste después de tu hora."
