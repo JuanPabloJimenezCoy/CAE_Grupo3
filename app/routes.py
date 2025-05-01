@@ -48,6 +48,8 @@ TEMPLATE_LOGIN = 'login.html'
 TEMPLATE_MIS_EMPLEADOS = 'mis_empleados.html'
 TEMPLATE_VER_SOLICITUDES_EXTRA = 'ver_mis_solicitudes_extra.html'
 SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO = "SELECT id_empleado FROM empleado WHERE documento = %s"
+SQL_SELECT_DATOS_SUPERVISOR = "SELECT id_supervisor, nombre, apellido FROM supervisor"
+SQL_SELECT_ID_SUPERVISOR = "SELECT id_supervisor FROM supervisor WHERE documento = %s"
 LOGIN_ROUTE = 'main.login'
 PIN_O_TARJETA_MESSAGE_INCORRECTA = "PIN o tarjeta incorrecta"
 ZONA_HORARIA_CO = 'America/Bogota'
@@ -442,7 +444,7 @@ def asignar_empleados():
         empleados_seleccionados = request.form.getlist('empleado_ids')
 
         if not empleados_seleccionados:
-            cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
+            cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
             supervisores = cur.fetchall()
             cur.execute("""
                 SELECT id_empleado, nombre, apellido FROM empleado
@@ -470,7 +472,7 @@ def asignar_empleados():
 
         conn.commit()
 
-        cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
+        cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
         supervisores = cur.fetchall()
         cur.execute("""
             SELECT id_empleado, nombre, apellido FROM empleado
@@ -491,7 +493,7 @@ def asignar_empleados():
         )
 
     # GET: mostrar supervisores y empleados no asignados
-    cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
+    cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
     supervisores = cur.fetchall()
     cur.execute("""
         SELECT id_empleado, nombre, apellido FROM empleado
@@ -789,7 +791,7 @@ def ver_retrasos():
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento,))
+    cur.execute(SQL_SELECT_ID_SUPERVISOR, (documento,))
     result = cur.fetchone()
     if not result:
         cur.close()
@@ -832,7 +834,7 @@ def exportar_retrasos():
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento,))
+    cur.execute(SQL_SELECT_ID_SUPERVISOR, (documento,))
     id_supervisor = cur.fetchone()[0]
 
     cur.execute("""
@@ -1020,7 +1022,7 @@ def enviar_aviso():
             os.makedirs(ruta_guardado, exist_ok=True)
             archivo.save(os.path.join(ruta_guardado, filename))
 
-            cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento_supervisor,))
+            cur.execute(SQL_SELECT_ID_SUPERVISOR, (documento_supervisor,))
             supervisor = cur.fetchone()
 
             if supervisor:
