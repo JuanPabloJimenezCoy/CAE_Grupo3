@@ -120,7 +120,7 @@ def vista_registro_entrada():
         cur = conn.cursor()
 
         if entrada_ya_registrada(cur, documento):
-            return cerrar_y_render(cur, conn, "Ya registraste tu entrada hoy.")
+            return cerrar_y_render(cur, conn, "Ya registraste tu entrada hoy empleado?")
 
         if not validar_credencial(cur, documento, metodo, valor):
             return cerrar_y_render(cur, conn, "PIN o tarjeta incorrecta.")
@@ -176,7 +176,7 @@ def vista_registro_entrada_supervisor():
         if ya_registrado:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy supervisor.")
 
         # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
@@ -243,7 +243,7 @@ def vista_registro_entrada_admin():
         if ya_registrado:
             cur.close()
             conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy.")
+            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy administrador.")
 
         # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
