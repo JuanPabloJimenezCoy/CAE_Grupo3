@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v1.0.0...v2.0.0) (2025-05-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* update routes.py
+
+### Features
+
+* preparación para versión 1.0.0 sin breaking change ([ce11a28](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/ce11a284ba29ff0f4d2b1f1ad750a1ec773ed34b))
+* update auth.py and routes.py ([c561b4d](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/c561b4d0acc0686a37fe9d23706353e33ae2cd81))
+* update routes.py ([dad43cc](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/dad43cc4b9e7b2bdc885039b0b1537914d6549cb))
+* update routes.py ([d1a5ca3](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/d1a5ca3aa9377cf04146a11080e5b80c09ebb1a3))
+* update routes.py ([c323472](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/c323472bc0f54718337edf174ace2235974ec5cb))
+* update routes.py ([67758d5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/67758d58919fadf12b2fdae147b0db6d17f53752))
+
+
+### Bug Fixes
+
+* mantener en rama estable sin cambio mayor ([be010f9](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/be010f9f446a9f23af546b6c8d72ebffe1f698ba))
+
 ## [1.0.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v0.22.0...v1.0.0) (2025-05-01)
 
 
