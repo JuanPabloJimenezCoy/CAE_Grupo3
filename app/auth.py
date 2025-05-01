@@ -9,6 +9,9 @@ MENSAJE_NO_ENTRADA_HOY = "No hay entrada registrada hoy o ya registraste la sali
 MENSAJE_SALIDA_REGISTRADA = "Salida registrada con éxito."
 TEMPLATE_REGISTRO_ENTRADA = 'registro_entrada.html'
 TEMPLATE_REGISTRO_SALIDA = 'registro_salida.html'
+MENSAJE_SALISTE_A_TIEMPO = " Saliste a tiempo."
+MENSAJE_SALISTE_ANTES = " Saliste antes de tiempo."
+MENSAJE_SALISTE_DESPUES = " Saliste después de tu hora."
 
 
 def buscar_usuario_por_documento(documento):
@@ -116,11 +119,11 @@ def calcular_mensaje_salida(cur, documento):
     diferencia = (salida_real - salida_prog).total_seconds()
 
     if abs(diferencia) <= 600:
-        return MENSAJE_SALIDA_REGISTRADA + " Saliste a tiempo."
+        return MENSAJE_SALIDA_REGISTRADA + MENSAJE_SALISTE_A_TIEMPO
     elif diferencia < -600:
-        return MENSAJE_SALIDA_REGISTRADA + " Saliste antes de tiempo."
+        return MENSAJE_SALIDA_REGISTRADA + MENSAJE_SALISTE_ANTES
     else:
-        return MENSAJE_SALIDA_REGISTRADA + " Saliste después de tu hora."
+        return MENSAJE_SALIDA_REGISTRADA + MENSAJE_SALISTE_DESPUES
 
 def registrar_salida(cur, asistencia_id):
     _, hora_salida = ahora_colombia()
@@ -188,11 +191,11 @@ def comparar_salida_programada(hora_prog, hora_real, fecha):
         diferencia = (salida_real_completa - salida_prog_completa).total_seconds()
 
     if abs(diferencia) <= 600:
-        return " Saliste a tiempo."
+        return MENSAJE_SALISTE_A_TIEMPO
     elif diferencia < -600:
-        return " Saliste antes de tiempo."
+        return MENSAJE_SALISTE_ANTES
     else:
-        return " Saliste después de tu hora."
+        return MENSAJE_SALISTE_DESPUES
     
 def validar_credencial_generico(cur, documento, metodo, valor, tabla):
     campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
@@ -217,11 +220,11 @@ def calcular_mensaje_salida_admin(cur, documento):
     diferencia = (salida_real - salida_prog).total_seconds()
 
     if abs(diferencia) <= 600:
-        return MENSAJE_SALIDA_REGISTRADA + " Saliste a tiempo."
+        return MENSAJE_SALIDA_REGISTRADA + MENSAJE_SALISTE_A_TIEMPO
     elif diferencia < -600:
-        return MENSAJE_SALIDA_REGISTRADA + " Saliste antes de tiempo."
+        return MENSAJE_SALIDA_REGISTRADA + MENSAJE_SALISTE_ANTES
     else:
-        return MENSAJE_SALIDA_REGISTRADA + " Saliste después de tu hora."
+        return MENSAJE_SALIDA_REGISTRADA + MENSAJE_SALISTE_DESPUES
 
 def cerrar_y_render_salida(cur, conn, mensaje):
     cur.close()
