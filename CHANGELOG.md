@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.4.5...v2.5.0) (2025-05-01)
+
+
+### Features
+
+* update registro_entrada.html, registro_salida.html and solicitar_tiempo extra.html ([4110bee](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/4110bee364ef6ea1e88c7813f0f4362dd9ebd3a4))
+
 ## [2.4.5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.4.4...v2.4.5) (2025-05-01)
 
 
