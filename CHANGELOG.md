@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.5.1...v2.6.0) (2025-05-08)
+
+
+### Features
+
+* create procfile and update requirements.txt ([8fae005](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/8fae005010ca4777e27f22e1784e2864071dd18f))
+
 ## [2.5.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.5.0...v2.5.1) (2025-05-01)
 
 
