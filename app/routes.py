@@ -243,22 +243,24 @@ def vista_registro_entrada_supervisor():
 
 
 @main_bp.route('/admin/entrada', methods=['GET', 'POST'])
+@login_required
 def vista_registro_entrada_admin():
     from .database import get_connection
     from datetime import datetime
     import pytz
+    from flask_login import current_user
 
-    if 'documento' not in session or session.get('rol') != 'administrador':
+    if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
-        documento = session['documento']
+        documento = current_user.id
         metodo = request.form['metodo']
         valor = request.form['valor']
 
         zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
         ahora = datetime.now(zona_colombia)
-        hora_local = ahora.time().replace(microsecond=0)  # ✅ sin microsegundos
+        hora_local = ahora.time().replace(microsecond=0)
         hoy = ahora.date()
 
         conn = get_connection()
@@ -266,7 +268,7 @@ def vista_registro_entrada_admin():
 
         # Verificar si ya hay registro hoy
         cur.execute("""
-            SELECT * FROM asistencia 
+            SELECT 1 FROM asistencia 
             WHERE documento_empleado = %s AND fecha = %s
         """, (documento, hoy))
         ya_registrado = cur.fetchone()
@@ -279,7 +281,7 @@ def vista_registro_entrada_admin():
         # Verificar PIN o tarjeta
         campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
         cur.execute(f"""
-            SELECT * FROM administrador 
+            SELECT 1 FROM administrador 
             WHERE documento = %s AND {campo} = %s
         """, (documento, valor))
         admin = cur.fetchone()
@@ -308,8 +310,6 @@ def vista_registro_entrada_admin():
 
     return render_template(TEMPLATE_REGISTRO_ENTRADA)
 
-
-from flask_login import login_required, current_user
 
 @main_bp.route('/empleado/salida', methods=['GET', 'POST'])
 @login_required
