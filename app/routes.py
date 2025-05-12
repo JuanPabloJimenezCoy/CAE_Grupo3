@@ -254,7 +254,7 @@ def vista_registro_entrada_admin():
         return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
-        documento = current_user.id
+        documento = current_user.documento
         metodo = request.form['metodo']
         valor = request.form['valor']
 
@@ -1093,7 +1093,6 @@ def descargar_aviso(filename):
 
     ruta = os.path.join(current_app.root_path, 'uploads', 'avisos')
     return send_from_directory(ruta, filename)
-
 
 
 @main_bp.route('/admin/avisos', methods=['GET'])
