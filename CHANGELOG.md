@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.6.1...v2.7.0) (2025-05-11)
+
+
+### Features
+
+* update init.py, requirements.txt, create conftest.py, test_auth.py and test_routes.py ([1a27084](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/1a27084479dbffe3d875f11144972e447dd60a16))
+
 ## [2.6.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.6.0...v2.6.1) (2025-05-09)
 
 
