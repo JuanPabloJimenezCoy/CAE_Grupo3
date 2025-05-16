@@ -42,21 +42,21 @@
   </div>
 
   <div class="text-center mt-4">
-    <a href="{{ url_for('main.ver_mi_qr') }}" class="btn btn-outline-primary">
-      Registrarse por QR
-    </a>
-  </div>
-
-  <div class="text-center mt-4">
     {% if mensaje %}
-      <div class="alert alert-success" role="alert">
+      <div id="mensaje-exito" class="alert alert-success" role="alert">
         {{ mensaje }}
       </div>
     {% elif error %}
-      <div class="alert alert-danger" role="alert">
+      <div id="mensaje-error" class="alert alert-danger" role="alert">
         {{ error }}
       </div>
     {% endif %}
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.ver_mi_qr') }}" class="btn btn-outline-primary">
+      Registrarse por QR
+    </a>
   </div>
 
   <div class="text-center mt-4">

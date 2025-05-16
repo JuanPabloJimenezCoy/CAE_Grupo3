@@ -7,6 +7,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, curren
 from flask_login import login_user, logout_user, login_required, current_user
 from .auth import buscar_usuario_por_documento, Usuario
 from flask_login import logout_user, login_required
+from app import services
 from datetime import date
 from datetime import datetime as dt
 from datetime import datetime
@@ -115,31 +116,6 @@ def admin_panel():
     return render_template(TEMPLATE_PANEL_ADMIN)
 
 
-def registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso):
-    _, hora_actual = ahora_colombia()
-    hoy = dt.now(zona_colombia()).date()
-    try:
-        cur.execute("""
-            INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha, minutos_retraso)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (documento, metodo, hora_actual, hoy, minutos_retraso))
-        conn.commit()
-        return (
-            f"Entrada registrada con éxito. Llegaste con {minutos_retraso} minutos de retraso."
-            if minutos_retraso > 0 else
-            "Entrada registrada a tiempo. ¡Buen trabajo!"
-        )
-    except Exception as e:
-        conn.rollback()
-        return f"Ocurrió un error al registrar la entrada: {str(e).splitlines()[0]}"
-
-
-def cerrar_y_render(cur, conn, mensaje):
-    cur.close()
-    conn.close()
-    return render_template(TEMPLATE_REGISTRO_ENTRADA, error=mensaje)
-
-
 @main_bp.route('/empleado/entrada', methods=['GET', 'POST'])
 @login_required
 def vista_registro_entrada():
@@ -150,32 +126,7 @@ def vista_registro_entrada():
         documento = current_user.documento
         metodo = request.form['metodo']
         valor = request.form['valor']
-
-        conn = get_connection()
-        cur = conn.cursor()
-
-        if entrada_ya_registrada(cur, documento):
-            return cerrar_y_render(cur, conn, "Ya registraste tu entrada hoy empleado?")
-
-        if not validar_credencial(cur, documento, metodo, valor):
-            return cerrar_y_render(cur, conn, PIN_O_TARJETA_MESSAGE_INCORRECTA)
-
-        horario = obtener_horario(cur, documento)
-        if not horario:
-            return cerrar_y_render(cur, conn, "No tienes un horario asignado.")
-
-        if not es_dia_laboral(horario['dias_laborales']):
-            return cerrar_y_render(cur, conn, "Hoy no es uno de tus días laborales.")
-
-        if not esta_en_rango_horario(horario['hora_entrada'], horario['hora_salida']):
-            return cerrar_y_render(
-                cur, conn,
-                f"Solo puedes registrar entrada entre {horario['hora_entrada']} y {horario['hora_salida']}."
-            )
-
-        minutos_retraso = calcular_retraso(horario['hora_entrada'])
-        mensaje = registrar_asistencia_y_mensaje(cur, conn, documento, metodo, minutos_retraso)
-
+        mensaje = services.registrar_entrada_empleado(documento, metodo, valor)
         return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
     return render_template(TEMPLATE_REGISTRO_ENTRADA)
@@ -245,11 +196,6 @@ def vista_registro_entrada_supervisor():
 @main_bp.route('/admin/entrada', methods=['GET', 'POST'])
 @login_required
 def vista_registro_entrada_admin():
-    from .database import get_connection
-    from datetime import datetime
-    import pytz
-    from flask_login import current_user
-
     if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
@@ -257,55 +203,7 @@ def vista_registro_entrada_admin():
         documento = current_user.documento
         metodo = request.form['metodo']
         valor = request.form['valor']
-
-        zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
-        ahora = datetime.now(zona_colombia)
-        hora_local = ahora.time().replace(microsecond=0)
-        hoy = ahora.date()
-
-        conn = get_connection()
-        cur = conn.cursor()
-
-        # Verificar si ya hay registro hoy
-        cur.execute("""
-            SELECT 1 FROM asistencia 
-            WHERE documento_empleado = %s AND fecha = %s
-        """, (documento, hoy))
-        ya_registrado = cur.fetchone()
-
-        if ya_registrado:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error="Ya registraste tu entrada hoy administrador.")
-
-        # Verificar PIN o tarjeta
-        campo = 'pin' if metodo == 'pin' else 'tarjeta_id'
-        cur.execute(f"""
-            SELECT 1 FROM administrador 
-            WHERE documento = %s AND {campo} = %s
-        """, (documento, valor))
-        admin = cur.fetchone()
-
-        if not admin:
-            cur.close()
-            conn.close()
-            return render_template(TEMPLATE_REGISTRO_ENTRADA, error=PIN_O_TARJETA_MESSAGE_INCORRECTA)
-
-        try:
-            # Insertar asistencia con fecha local
-            cur.execute("""
-                INSERT INTO asistencia (documento_empleado, metodo, hora_entrada, fecha)
-                VALUES (%s, %s, %s, %s)
-            """, (documento, metodo, hora_local, hoy))
-            conn.commit()
-            mensaje = "Entrada registrada con éxito."
-        except Exception as e:
-            conn.rollback()
-            mensaje = f"Ocurrió un error al registrar la entrada: {str(e).splitlines()[0]}"
-
-        cur.close()
-        conn.close()
-
+        mensaje = services.registrar_entrada_admin(documento, metodo, valor)
         return render_template(TEMPLATE_REGISTRO_ENTRADA, mensaje=mensaje)
 
     return render_template(TEMPLATE_REGISTRO_ENTRADA)

@@ -8,3 +8,4 @@ openpyxl
 flask-login
 gunicorn
 pytest
+bs4

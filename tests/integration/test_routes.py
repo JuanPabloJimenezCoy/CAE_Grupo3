@@ -1,5 +1,7 @@
 import pytest
+from flask import render_template
 from flask import send_from_directory
+from bs4 import BeautifulSoup
 
 def test_login_get(client):
     response = client.get('/')
@@ -30,17 +32,32 @@ def test_logout(client, empleado_usuario):
     response = client.get('/logout', follow_redirects=True)
     assert b'Login' in response.data or response.status_code == 200
 
+
 def test_entrada_ya_registrada(client, monkeypatch, empleado_usuario):
-    monkeypatch.setattr("app.routes.entrada_ya_registrada", lambda cur, doc: True)
-    monkeypatch.setattr("app.routes.cerrar_y_render", lambda cur, conn, msg: msg)
+    monkeypatch.setattr("app.services.registrar_entrada_empleado", lambda doc, metodo, valor: "Ya registraste tu entrada hoy.")
 
     response = client.post('/empleado/entrada', data={
         "metodo": "pin",
         "valor": "1234"
     })
 
-    assert b"Ya registraste tu entrada hoy" in response.data or b"entrada hoy" in response.data
+    soup = BeautifulSoup(response.data, 'html.parser')
+    mensaje = soup.find(id='mensaje-exito')
+    assert mensaje is not None
+    assert "Ya registraste tu entrada hoy." in mensaje.text
 
+def test_entrada_empleado_exito(client, monkeypatch, empleado_usuario):
+    monkeypatch.setattr("app.services.registrar_entrada_empleado", lambda doc, metodo, valor: "Entrada registrada con éxito.")
+
+    response = client.post('/empleado/entrada', data={
+        "metodo": "pin",
+        "valor": "1234"
+    })
+
+    soup = BeautifulSoup(response.data, 'html.parser')
+    mensaje = soup.find(id='mensaje-exito')
+    assert mensaje is not None
+    assert "Entrada registrada con éxito." in mensaje.text
 
 def test_entrada_credencial_invalida(client, monkeypatch, empleado_usuario):
     monkeypatch.setattr("app.routes.entrada_ya_registrada", lambda cur, doc: False)
@@ -160,61 +177,37 @@ def test_entrada_supervisor_pin_invalido(client, monkeypatch, supervisor_usuario
 
     assert b"PIN o tarjeta incorrecta" in response.data or b"incorrecta" in response.data
 
-@pytest.mark.xfail(reason="Por temas de integración con Flask-Login y mock, este test está fallando en el entorno de pruebas, pero en producción funciona.")
 def test_entrada_admin_exito(client, monkeypatch, admin_usuario):
-    monkeypatch.setattr("flask_login.utils._get_user", lambda: admin_usuario)
-
-    class MockCursor:
-        def __init__(self): self.query = ""
-        def execute(self, query, params): self.query = query.lower()
-        def fetchone(self):
-            if "from asistencia" in self.query:
-                return None
-            if "from administrador" in self.query:
-                return {"documento": "789"}
-            return None
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def commit(self): pass
-        def rollback(self): pass
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.registrar_entrada_admin", lambda doc, metodo, valor: "Entrada registrada con éxito.")
 
     response = client.post('/admin/entrada', data={
         "metodo": "pin",
         "valor": "adminpass"
     })
 
-    html = response.data.decode()
-    print(html)
-
-    assert "Entrada registrada con éxito." in html
-    assert '<div class="alert alert-success"' in html
+    soup = BeautifulSoup(response.data, 'html.parser')
+    mensaje = soup.find(id='mensaje-exito')
+    assert mensaje is not None
+    assert "Entrada registrada con éxito." in mensaje.text
 
 def test_entrada_admin_ya_registrada(client, monkeypatch, admin_usuario):
-    class MockCursor:
-        def __init__(self): self.query = ""
-        def execute(self, query, params): self.query = query
-        def fetchone(self):
-            if "asistencia" in self.query:
-                return {"id": 99}  # ← Simula que ya hay entrada
-        def close(self): pass
+    # Simulo la respuesta de services.registrar_entrada_admin
+    monkeypatch.setattr("app.services.registrar_entrada_admin", lambda doc, metodo, valor: "Ya registraste tu entrada hoy.")
 
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
-
+    # Hago el POST como admin
     response = client.post('/admin/entrada', data={
         "metodo": "pin",
         "valor": "adminpass"
     })
 
-    assert b"ya registraste tu entrada hoy" in response.data.lower() or b"alert-danger" in response.data
+    # Analizo la respuesta HTML
+    soup = BeautifulSoup(response.data, 'html.parser')
+    mensaje = soup.find(id='mensaje-exito')
+
+    # Verifico que se muestre correctamente el mensaje
+    assert mensaje is not None
+    assert "ya registraste tu entrada hoy" in mensaje.text.lower()
+
 
 def test_entrada_admin_pin_invalido(client, monkeypatch, admin_usuario):
     class MockCursor:
