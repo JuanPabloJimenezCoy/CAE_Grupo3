@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.9.0...v2.10.0) (2025-05-22)
+
+
+### Features
+
+* update panel_admin.html, panel_empleado.html, panel_supervisor.html and create panel_admin.css, panel_empleado.css, panel_supervisor.css ([b70147f](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/b70147ffe7cc70e9904aea50dcde678ce1f25597))
+
 ## [2.9.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.8.0...v2.9.0) (2025-05-16)
 
 
