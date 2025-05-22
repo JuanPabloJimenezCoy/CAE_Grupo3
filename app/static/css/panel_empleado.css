@@ -1,0 +1,53 @@
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  background-color: #f0fdf4;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #198754;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.sidebar h4 {
+  margin-bottom: 30px;
+}
+
+.sidebar a {
+  color: white;
+  margin-bottom: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar a:hover {
+  text-decoration: underline;
+  background-color: #157347;
+  padding-left: 10px;
+  border-radius: 5px;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 50px;
+}
+
+.btn-lg {
+  width: 100%;
+}
+
+.panel-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #198754;
+}
+
+.lead {
+  color: #333;
+}
