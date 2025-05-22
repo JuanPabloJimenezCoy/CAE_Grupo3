@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.8.0...v2.9.0) (2025-05-16)
+
+
+### Features
+
+* update routes.py, test_routes.py, registro_entrada.html and create services.py ([861a4bc](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/861a4bc3051305128f23a750137857966fbb3b6d))
+
 ## [2.8.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.7.0...v2.8.0) (2025-05-12)
 
 
