@@ -34,9 +34,7 @@ TEMPLATE_PANEL_EMPLEADO = 'panel_empleado.html'
 TEMPLATE_PANEL_ADMIN = 'panel_admin.html'
 TEMPLATE_REGISTRO_ENTRADA = 'registro_entrada.html'
 TEMPLATE_REGISTRO_SALIDA = 'registro_salida.html'
-TEMPLATE_ASIGNAR_EMPLEADOS = 'asignar_empleados.html'
 TEMPLATE_GESTIONAR_ASIGNACIONES = 'gestionar_asignaciones.html'
-TEMPLATE_ASIGNAR_HORARIO = 'asignar_horario.html'
 TEMPLATE_GESTIONAR_HORARIOS = 'gestionar_horarios.html'
 TEMPLATE_REPORTE_RETRASOS = 'reporte_retrasos.html'
 TEMPLATE_SOLICITAR_TIEMPO_EXTRA = 'solicitar_tiempo_extra.html'
@@ -326,9 +324,9 @@ def vista_registro_salida_admin():
     return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
 
-@main_bp.route('/admin/asignar-empleados', methods=['GET', 'POST'])
+@main_bp.route('/admin/asignar-y-gestionar', methods=['GET', 'POST'])
 @login_required
-def asignar_empleados():
+def asignar_y_gestionar():
     from .database import get_connection
 
     if current_user.role != 'administrador':
@@ -337,99 +335,53 @@ def asignar_empleados():
     conn = get_connection()
     cur = conn.cursor()
 
+    mensaje = None
+    error = None
+
     if request.method == 'POST':
-        supervisor_id = request.form['supervisor_id']
-        empleados_seleccionados = request.form.getlist('empleado_ids')
+        # Si viene del formulario de asignación
+        if 'supervisor_id' in request.form and 'empleado_ids' in request.form:
+            supervisor_id = request.form['supervisor_id']
+            empleados_seleccionados = request.form.getlist('empleado_ids')
 
-        if not empleados_seleccionados:
-            cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
-            supervisores = cur.fetchall()
+            if not empleados_seleccionados:
+                error = "Selecciona al menos un empleado."
+            else:
+                for empleado_id in empleados_seleccionados:
+                    cur.execute("""
+                        INSERT INTO empleado_supervisor (id_empleado, id_supervisor)
+                        VALUES (%s, %s)
+                        ON CONFLICT DO NOTHING
+                    """, (empleado_id, supervisor_id))
+                conn.commit()
+                mensaje = "Asignación realizada con éxito."
+
+        # Si viene del formulario de eliminación de asignación
+        elif 'empleado_id' in request.form and 'supervisor_id_eliminar' in request.form:
+            empleado_id = request.form['empleado_id']
+            supervisor_id = request.form['supervisor_id_eliminar']
+
             cur.execute("""
-                SELECT id_empleado, nombre, apellido FROM empleado
-                WHERE id_empleado NOT IN (
-                    SELECT id_empleado FROM empleado_supervisor
-                )
-            """)
-            empleados = cur.fetchall()
-
-            cur.close()
-            conn.close()
-            return render_template(
-                TEMPLATE_ASIGNAR_EMPLEADOS,
-                error="Selecciona al menos un empleado.",
-                supervisores=supervisores,
-                empleados=empleados
-            )
-
-        for empleado_id in empleados_seleccionados:
-            cur.execute("""
-                INSERT INTO empleado_supervisor (id_empleado, id_supervisor)
-                VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
+                DELETE FROM empleado_supervisor
+                WHERE id_empleado = %s AND id_supervisor = %s
             """, (empleado_id, supervisor_id))
+            conn.commit()
+            mensaje = "Asignación eliminada con éxito."
 
-        conn.commit()
-
-        cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
-        supervisores = cur.fetchall()
-        cur.execute("""
-            SELECT id_empleado, nombre, apellido FROM empleado
-            WHERE id_empleado NOT IN (
-                SELECT id_empleado FROM empleado_supervisor
-            )
-        """)
-        empleados = cur.fetchall()
-
-        cur.close()
-        conn.close()
-
-        return render_template(
-            TEMPLATE_ASIGNAR_EMPLEADOS,
-            mensaje="Asignación realizada con éxito.",
-            supervisores=supervisores,
-            empleados=empleados
-        )
-
-    # GET: mostrar supervisores y empleados no asignados
+    # Supervisores disponibles
     cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
     supervisores = cur.fetchall()
+
+    # Empleados no asignados
     cur.execute("""
         SELECT id_empleado, nombre, apellido FROM empleado
         WHERE id_empleado NOT IN (
             SELECT id_empleado FROM empleado_supervisor
         )
     """)
-    empleados = cur.fetchall()
+    empleados_no_asignados = cur.fetchall()
 
-    cur.close()
-    conn.close()
-
-    return render_template(TEMPLATE_ASIGNAR_EMPLEADOS, supervisores=supervisores, empleados=empleados)
-
-
-@main_bp.route('/admin/gestionar-asignaciones', methods=['GET', 'POST'])
-@login_required
-def gestionar_asignaciones():
-    from .database import get_connection
-
-    if current_user.role != 'administrador':
-        return redirect(url_for(LOGIN_ROUTE))
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    if request.method == 'POST':
-        empleado_id = request.form['empleado_id']
-        supervisor_id = request.form['supervisor_id']
-
-        cur.execute("""
-            DELETE FROM empleado_supervisor
-            WHERE id_empleado = %s AND id_supervisor = %s
-        """, (empleado_id, supervisor_id))
-
-        conn.commit()
-
-    # Consultar todas las asignaciones actuales
+    # Asignaciones actuales
     cur.execute("""
         SELECT 
             s.id_supervisor,
@@ -448,7 +400,7 @@ def gestionar_asignaciones():
     cur.close()
     conn.close()
 
-    # Agrupar para mostrar
+    # Agrupar asignaciones
     asignaciones = {}
     for row in registros:
         id_supervisor = row[0]
@@ -465,7 +417,14 @@ def gestionar_asignaciones():
             'supervisor_id': id_supervisor
         })
 
-    return render_template(TEMPLATE_GESTIONAR_ASIGNACIONES, asignaciones=asignaciones)
+    return render_template(
+        TEMPLATE_GESTIONAR_ASIGNACIONES,  # Nuevo template combinado
+        supervisores=supervisores,
+        empleados=empleados_no_asignados,
+        asignaciones=asignaciones,
+        mensaje=mensaje,
+        error=error
+    )
 
 
 @main_bp.route('/supervisor/mis-empleados')
@@ -525,9 +484,9 @@ def ver_mi_qr():
     return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento)
 
 
-@main_bp.route('/admin/asignar-horario', methods=['GET', 'POST'])
+@main_bp.route('/admin/asignar-y-gestionar-horarios', methods=['GET', 'POST'])
 @login_required
-def asignar_horario():
+def asignar_y_gestionar_horarios():
     from .database import get_connection
 
     if current_user.role != 'administrador':
@@ -536,8 +495,10 @@ def asignar_horario():
     conn = get_connection()
     cur = conn.cursor()
 
+    mensaje = None
+
     if request.method == 'POST':
-        empleado_id = request.form['empleado_id']
+        id_empleado = request.form['empleado_id']
         hora_entrada = request.form['hora_entrada']
         hora_salida = request.form['hora_salida']
         dias = request.form.getlist('dias_laborales')
@@ -546,29 +507,39 @@ def asignar_horario():
             cur.close()
             conn.close()
             return render_template(
-                TEMPLATE_ASIGNAR_HORARIO,
-                empleados=[],
+                TEMPLATE_GESTIONAR_HORARIOS,
+                empleados_no_asignados=[],
+                horarios=[],
                 mensaje="Debe seleccionar al menos un día."
             )
 
         dias_string = ''.join(dias)
 
-        cur.execute("""
-            INSERT INTO horarios (id_empleado, dias_laborales, hora_entrada, hora_salida)
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT (id_empleado) DO UPDATE
-            SET dias_laborales = EXCLUDED.dias_laborales,
-                hora_entrada = EXCLUDED.hora_entrada,
-                hora_salida = EXCLUDED.hora_salida
-        """, (empleado_id, dias_string, hora_entrada, hora_salida))
+        # Detectar si es asignación nueva (sin horario previo)
+        if request.form.get('accion') == 'asignar':
+            cur.execute("""
+                INSERT INTO horarios (id_empleado, dias_laborales, hora_entrada, hora_salida)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (id_empleado) DO UPDATE
+                SET dias_laborales = EXCLUDED.dias_laborales,
+                    hora_entrada = EXCLUDED.hora_entrada,
+                    hora_salida = EXCLUDED.hora_salida
+            """, (id_empleado, dias_string, hora_entrada, hora_salida))
+            mensaje = "Horario asignado correctamente."
+        else:
+            # Es edición/gestión
+            cur.execute("""
+                UPDATE horarios
+                SET hora_entrada = %s,
+                    hora_salida = %s,
+                    dias_laborales = %s
+                WHERE id_empleado = %s
+            """, (hora_entrada, hora_salida, dias_string, id_empleado))
+            mensaje = "Horario actualizado correctamente."
 
         conn.commit()
-        cur.close()
-        conn.close()
 
-        return render_template(TEMPLATE_ASIGNAR_HORARIO, empleados=[], mensaje="Horario asignado correctamente.")
-
-    # GET
+    # Empleados sin horario
     cur.execute("""
         SELECT id_empleado, nombre, apellido
         FROM empleado
@@ -576,41 +547,9 @@ def asignar_horario():
             SELECT id_empleado FROM horarios
         )
     """)
-    empleados = cur.fetchall()
-    cur.close()
-    conn.close()
+    empleados_no_asignados = cur.fetchall()
 
-    return render_template(TEMPLATE_ASIGNAR_HORARIO, empleados=empleados)
-
-
-@main_bp.route('/admin/gestionar-horarios', methods=['GET', 'POST'])
-@login_required
-def gestionar_horarios():
-    from .database import get_connection
-
-    if current_user.role != 'administrador':
-        return redirect(url_for(LOGIN_ROUTE))
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    if request.method == 'POST':
-        id_empleado = request.form['empleado_id']
-        nueva_entrada = request.form['hora_entrada']
-        nueva_salida = request.form['hora_salida']
-        dias = request.form.getlist('dias_laborales')
-        dias_string = ''.join(dias)
-
-        cur.execute("""
-            UPDATE horarios
-            SET hora_entrada = %s,
-                hora_salida = %s,
-                dias_laborales = %s
-            WHERE id_empleado = %s
-        """, (nueva_entrada, nueva_salida, dias_string, id_empleado))
-
-        conn.commit()
-
+    # Empleados con horario (para gestión)
     cur.execute("""
         SELECT e.id_empleado, e.nombre, e.apellido, h.hora_entrada, h.hora_salida, h.dias_laborales
         FROM horarios h
@@ -622,7 +561,12 @@ def gestionar_horarios():
     cur.close()
     conn.close()
 
-    return render_template(TEMPLATE_GESTIONAR_HORARIOS, horarios=horarios)
+    return render_template(
+        TEMPLATE_GESTIONAR_HORARIOS,
+        empleados_no_asignados=empleados_no_asignados,
+        horarios=horarios,
+        mensaje=mensaje
+    )
 
 
 def esta_en_horario(documento):

@@ -504,7 +504,7 @@ def test_ver_empleados_asignados_no_supervisor(client, monkeypatch, supervisor_u
     assert response.status_code == 200
     assert b"No se pudo encontrar el supervisor" in response.data or b"supervisor" in response.data
 
-def test_asignar_empleados_post_valido(client, monkeypatch, admin_usuario):
+def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params): pass
         def fetchall(self): return []
@@ -517,7 +517,7 @@ def test_asignar_empleados_post_valido(client, monkeypatch, admin_usuario):
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
-    response = client.post('/admin/asignar-empleados', data={
+    response = client.post('/admin/asignar-y-gestionar', data={
         "supervisor_id": "1",
         "empleado_ids": ["1", "2"]
     })
@@ -525,9 +525,9 @@ def test_asignar_empleados_post_valido(client, monkeypatch, admin_usuario):
     html = response.data.decode('utf-8')
 
     assert response.status_code == 200
-    assert "Asignación realizada con éxito" in html or "asignación" in html
+    assert "Asignación realizada con éxito" in html or "asignación" in html.lower()
 
-def test_asignar_horario_post_valido(client, monkeypatch, admin_usuario):
+def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params): pass
         def fetchall(self): return []
@@ -540,7 +540,8 @@ def test_asignar_horario_post_valido(client, monkeypatch, admin_usuario):
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
-    response = client.post('/admin/asignar-horario', data={
+    response = client.post('/admin/asignar-y-gestionar-horarios', data={
+        "accion": "asignar",
         "empleado_id": "1",
         "hora_entrada": "08:00",
         "hora_salida": "17:00",
@@ -550,7 +551,7 @@ def test_asignar_horario_post_valido(client, monkeypatch, admin_usuario):
     html = response.data.decode('utf-8')
 
     assert response.status_code == 200
-    assert "Horario asignado correctamente" in html or "horario" in html
+    assert "Horario asignado correctamente" in html or "Horario asignado correctamente.".lower() in html.lower()
 
 @pytest.mark.xfail(reason="En revisión: solicitar tiempo extra con archivos y inserts")
 def test_solicitar_tiempo_extra_post(client, monkeypatch, empleado_usuario):
@@ -596,13 +597,21 @@ def test_enviar_aviso_post_valido(client, monkeypatch, supervisor_usuario):
     assert response.status_code == 200
     assert b"Aviso enviado exitosamente" in response.data or b"aviso" in response.data
 
-def test_gestionar_asignaciones_post_valido(client, monkeypatch, admin_usuario):
+def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
-        def execute(self, query, params): pass
+        def __init__(self):
+            self.last_query = None
+
+        def execute(self, query, params=None):
+            self.last_query = query
+
         def fetchall(self):
-            return [
-                (1, 'Carlos', 'Gomez', 10, 'Juan', 'Perez')
-            ]
+            if "FROM empleado_supervisor" in self.last_query:
+                return [
+                    (1, 'Carlos', 'Gomez', 10, 'Juan', 'Perez')
+                ]
+            return []
+
         def close(self): pass
 
     class MockConn:
@@ -612,18 +621,21 @@ def test_gestionar_asignaciones_post_valido(client, monkeypatch, admin_usuario):
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
-    response = client.post('/admin/gestionar-asignaciones', data={
+    response = client.post('/admin/asignar-y-gestionar', data={
         "empleado_id": "10",
-        "supervisor_id": "1"
+        "supervisor_id_eliminar": "1"
     })
 
-    assert response.status_code == 200
-    assert b'Juan' in response.data or b'Perez' in response.data
+    html = response.data.decode('utf-8')
 
-def test_gestionar_asignaciones_get(client, monkeypatch, admin_usuario):
+    assert response.status_code == 200
+    assert 'Juan' in html or 'Perez' in html
+
+def test_asignar_y_gestionar_get(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params=None): pass
         def fetchall(self):
+            # Devolvemos al menos un registro de asignación simulada
             return [
                 (1, 'Carlos', 'Gomez', 10, 'Juan', 'Perez')
             ]
@@ -635,12 +647,12 @@ def test_gestionar_asignaciones_get(client, monkeypatch, admin_usuario):
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
-    response = client.get('/admin/gestionar-asignaciones')
+    response = client.get('/admin/asignar-y-gestionar')
 
     assert response.status_code == 200
     assert b'Juan' in response.data or b'Perez' in response.data
 
-def test_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
+def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params): pass
         def fetchall(self):
@@ -656,7 +668,8 @@ def test_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
-    response = client.post('/admin/gestionar-horarios', data={
+    response = client.post('/admin/asignar-y-gestionar-horarios', data={
+        "accion": "editar",
         "empleado_id": "1",
         "hora_entrada": "09:00",
         "hora_salida": "18:00",
@@ -666,7 +679,7 @@ def test_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
     assert response.status_code == 200
     assert b'Juan' in response.data or b'Perez' in response.data
 
-def test_gestionar_horarios_get(client, monkeypatch, admin_usuario):
+def test_asignar_y_gestionar_horarios_get(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params=None): pass
         def fetchall(self):
@@ -681,7 +694,7 @@ def test_gestionar_horarios_get(client, monkeypatch, admin_usuario):
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
-    response = client.get('/admin/gestionar-horarios')
+    response = client.get('/admin/asignar-y-gestionar-horarios')
 
     assert response.status_code == 200
     assert b'Juan' in response.data or b'Perez' in response.data

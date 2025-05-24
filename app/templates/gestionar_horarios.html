@@ -2,13 +2,67 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Horarios Asignados</title>
+  <title>Asignar y Gestionar Horarios</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
 <div class="container py-5">
+
+  <div class="text-center mb-5">
+    <h2 class="text-dark">Asignar Horario a Empleado</h2>
+  </div>
+
+  <div class="d-flex justify-content-center">
+    <form method="POST" class="w-50 p-4 bg-white rounded shadow">
+      <input type="hidden" name="accion" value="asignar">
+
+      <div class="mb-3">
+        <label for="empleado_id" class="form-label">Seleccionar Empleado:</label>
+        <select id="empleado_id" name="empleado_id" class="form-select" required>
+          {% for emp in empleados_no_asignados %}
+            <option value="{{ emp[0] }}">{{ emp[1] }} {{ emp[2] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="hora_entrada" class="form-label">Hora de Entrada:</label>
+        <input type="time" id="hora_entrada" name="hora_entrada" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="hora_salida" class="form-label">Hora de Salida:</label>
+        <input type="time" id="hora_salida" name="hora_salida" class="form-control" required>
+      </div>
+
+      <div class="mb-4">
+        <p class="form-label mb-2">Días de Trabajo:</p>
+        {% for letra, dia in [('l', 'Lunes'), ('m', 'Martes'), ('w', 'Miércoles'), ('j', 'Jueves'), ('v', 'Viernes'), ('s', 'Sábado'), ('d', 'Domingo')] %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="dias_laborales" value="{{ letra }}" id="asig_{{ letra }}">
+            <label class="form-check-label" for="asig_{{ letra }}">{{ dia }}</label>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="d-grid gap-2 mb-3">
+        <button type="submit" class="btn btn-dark">Asignar Horario</button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="text-center mt-4">
+    {% if mensaje %}
+      <div class="alert alert-success w-50 mx-auto" role="alert">
+        {{ mensaje }}
+      </div>
+    {% endif %}
+  </div>
+
+  <hr class="my-5">
 
   <div class="text-center mb-5">
     <h2 class="text-dark">Horarios Asignados</h2>
@@ -18,11 +72,12 @@
     <div class="d-flex justify-content-center mb-4">
       <form method="POST" class="w-50 p-4 bg-white border border-secondary rounded shadow">
 
+        <input type="hidden" name="empleado_id" value="{{ h[0] }}">
+        <input type="hidden" name="accion" value="editar">
+
         <div class="mb-3">
           <strong class="text-dark">{{ h[1] }} {{ h[2] }}</strong>
         </div>
-
-        <input type="hidden" name="empleado_id" value="{{ h[0] }}">
 
         <div class="mb-3">
           <label for="hora_entrada_{{ h[0] }}" class="form-label">Hora de Entrada:</label>
@@ -40,9 +95,7 @@
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="dias_laborales" value="{{ letra }}" id="{{ letra }}{{ h[0] }}"
               {% if letra in h[5] %}checked{% endif %}>
-              <label class="form-check-label" for="{{ letra }}{{ h[0] }}">
-                {{ dia }}
-              </label>
+              <label class="form-check-label" for="{{ letra }}{{ h[0] }}">{{ dia }}</label>
             </div>
           {% endfor %}
         </div>
