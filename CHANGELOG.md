@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.10.0...v2.11.0) (2025-05-24)
+
+
+### Features
+
+* update routes.py, gestionar_asignaciones.html, gestionar_horarios.html, test_routes.py and delete asignar_empleados.html, asignar_horario.html ([eacc865](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/eacc865177bb5e6d9a9218c1075e568d79d21e6d))
+
 ## [2.10.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.9.0...v2.10.0) (2025-05-22)
 
 
