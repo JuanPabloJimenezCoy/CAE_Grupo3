@@ -368,11 +368,9 @@ def asignar_y_gestionar():
             conn.commit()
             mensaje = "Asignación eliminada con éxito."
 
-    # Supervisores disponibles
     cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
     supervisores = cur.fetchall()
 
-    # Empleados no asignados
     cur.execute("""
         SELECT id_empleado, nombre, apellido FROM empleado
         WHERE id_empleado NOT IN (
@@ -381,7 +379,6 @@ def asignar_y_gestionar():
     """)
     empleados_no_asignados = cur.fetchall()
 
-    # Asignaciones actuales
     cur.execute("""
         SELECT 
             s.id_supervisor,
@@ -400,7 +397,6 @@ def asignar_y_gestionar():
     cur.close()
     conn.close()
 
-    # Agrupar asignaciones
     asignaciones = {}
     for row in registros:
         id_supervisor = row[0]
