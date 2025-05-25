@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.3](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.12.2...v2.12.3) (2025-05-25)
+
+
+### Bug Fixes
+
+* update back.py ([dcdbaca](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/dcdbacaf7c465536a9d353e0a6dd5cde85da9b32))
+
 ## [2.12.2](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.12.1...v2.12.2) (2025-05-25)
 
 
