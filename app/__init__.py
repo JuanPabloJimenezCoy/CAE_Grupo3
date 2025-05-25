@@ -8,7 +8,12 @@ load_dotenv()
 
 def create_app(testing=False):
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'devkey')
+
+    secret_key = os.getenv('SECRET_KEY')
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY no está definida en las variables de entorno")
+
+    app.config['SECRET_KEY'] = secret_key
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
