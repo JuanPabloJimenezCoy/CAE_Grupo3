@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.12.3...v2.13.0) (2025-05-25)
+
+
+### Features
+
+* update routes.py and mi_qr.html ([934cb9c](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/934cb9c2a03c13f71366e777b71c7d2ed6b80f4f))
+
 ## [2.12.3](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.12.2...v2.12.3) (2025-05-25)
 
 
