@@ -470,22 +470,33 @@ def ver_mi_qr():
     import qrcode
     import io
     import base64
+    from flask import Response
+    import app
 
     documento = current_user.documento
-    mensaje = None
 
+    # Si viene del escaneo (con ?scan=true), solo registrar y devolver vacío
     if request.args.get('scan') == 'true':
-        # Aquí llamamos tu función avanzada
-        mensaje = registrar_entrada_empleado(documento, metodo='qr', valor=None)
+        conn = get_connection()
+        cur = conn.cursor()
 
-    # Generar el QR
+        # Procesar entrada/salida según tu lógica
+        mensaje = registrar_entrada_empleado(documento, metodo='qr', valor=None)
+        app.logger.info(f"Registro QR para {documento}: {mensaje}")
+
+        cur.close()
+        conn.close()
+
+        return Response(status=204)  # Respuesta vacía al escáner
+
+    # Si no es escaneo, generar y mostrar el QR en la página
     url = f"https://cae-grupo3.onrender.com/mi-qr?scan=true"
     qr = qrcode.make(url)
     buffer = io.BytesIO()
     qr.save(buffer, format='PNG')
     qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento, mensaje=mensaje)
+    return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento)
 
 
 @main_bp.route('/admin/asignar-y-gestionar-horarios', methods=['GET', 'POST'])

@@ -12,15 +12,9 @@
 
   <h2 class="text-primary mb-4">Código QR para Registrar Entrada o Salida</h2>
 
-  {% if mensaje %}
-    <div class="alert alert-info">
-      {{ mensaje }}
-    </div>
-  {% else %}
-    <p class="lead text-dark mb-4">
-      Escanéalo con la cámara de la entrada para registrar tu ingreso o salida automáticamente.
-    </p>
-  {% endif %}
+  <p class="lead text-dark mb-4">
+    Escanéalo con la cámara de la entrada para registrar tu ingreso o salida automáticamente.
+  </p>
 
   <div class="mb-4">
     <img src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR" class="img-fluid border border-primary rounded p-2" style="max-width: 300px;">
