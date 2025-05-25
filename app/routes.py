@@ -8,6 +8,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from .auth import buscar_usuario_por_documento, Usuario
 from flask_login import logout_user, login_required
 from app import services
+from .services import registrar_entrada_empleado
 from datetime import date
 from datetime import datetime as dt
 from datetime import datetime
@@ -469,52 +470,22 @@ def ver_mi_qr():
     import qrcode
     import io
     import base64
-    from datetime import date
 
     documento = current_user.documento
     mensaje = None
 
     if request.args.get('scan') == 'true':
-        conn = get_connection()
-        cur = conn.cursor()
-        hoy = date.today()
+        # Aquí llamamos tu función avanzada
+        mensaje = registrar_entrada_empleado(documento, metodo='qr', valor=None)
 
-        # Consultar último registro del día
-        cur.execute("""
-            SELECT tipo FROM asistencia
-            WHERE documento_empleado = %s AND fecha = %s
-            ORDER BY hora_entrada DESC LIMIT 1
-        """, (documento, hoy))
-        resultado = cur.fetchone()
-
-        if not resultado or resultado[0] == 'salida':
-            # Registrar entrada
-            minutos_retraso = 0  # Aquí puedes calcularlo según horario esperado
-            mensaje = registrar_asistencia_y_mensaje(cur, conn, documento, metodo='qr', minutos_retraso=minutos_retraso)
-        else:
-            # Registrar salida
-            try:
-                cur.execute("""
-                    INSERT INTO asistencia_salida (documento_empleado, hora_salida, fecha)
-                    VALUES (%s, NOW(), %s)
-                """, (documento, hoy))
-                conn.commit()
-                mensaje = "✅ Salida registrada correctamente."
-            except Exception as e:
-                conn.rollback()
-                mensaje = f"Error al registrar salida: {str(e).splitlines()[0]}"
-
-        cur.close()
-        conn.close()
-
-    # Generar el QR como siempre
+    # Generar el QR
     url = f"https://cae-grupo3.onrender.com/mi-qr?scan=true"
     qr = qrcode.make(url)
     buffer = io.BytesIO()
     qr.save(buffer, format='PNG')
     qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    return render_template('mi_qr.html', qr_base64=qr_base64, documento=documento, mensaje=mensaje)
+    return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento, mensaje=mensaje)
 
 
 @main_bp.route('/admin/asignar-y-gestionar-horarios', methods=['GET', 'POST'])
