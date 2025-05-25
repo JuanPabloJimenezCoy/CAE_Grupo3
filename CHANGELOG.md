@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.12.0...v2.12.1) (2025-05-25)
+
+
+### Bug Fixes
+
+* update init.py ([a83c4af](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/a83c4af63fa53281f667d6c4f77403b261d76ea6))
+
 ## [2.12.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.11.0...v2.12.0) (2025-05-25)
 
 
