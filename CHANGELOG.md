@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.11.0...v2.12.0) (2025-05-25)
+
+
+### Features
+
+* update routes.py ([1da73be](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/1da73be2a39f793908eb98f69219c8a4cd0b8c5d))
+
 ## [2.11.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.10.0...v2.11.0) (2025-05-24)
 
 
