@@ -12,27 +12,35 @@
 
   <h2 class="text-primary mb-4">Código QR para Registrar Entrada o Salida</h2>
 
-  <p class="lead text-dark mb-4">
-    Escanéalo con la cámara de la entrada para registrar tu ingreso o salida automáticamente.
-  </p>
+  {% if mensaje %}
+    <div class="alert alert-success">
+      {{ mensaje }}
+    </div>
+  {% else %}
+    <p class="lead text-dark mb-4">
+      Escanéalo con la cámara de la entrada para registrar tu ingreso o salida automáticamente.
+    </p>
+  {% endif %}
 
   <div class="mb-4">
-    <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Código" class="img-fluid border border-primary rounded p-2" style="max-width: 300px;">
+    <img src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR" class="img-fluid border border-primary rounded p-2" style="max-width: 300px;">
   </div>
 
   <div class="d-grid gap-2 col-6 mx-auto mb-4">
     <a download="qr_{{ documento }}.png" href="data:image/png;base64,{{ qr_base64 }}" class="btn btn-outline-primary">
-      Descargar QR
+      Descargar QR como Imagen
     </a>
   </div>
 
-  <div class="d-grid gap-2 col-6 mx-auto">
-    <a href="{% if session['rol'] == 'empleado' %}
+  <div class="text-center mt-4">
+    <a href="{% if current_user.role == 'empleado' %}
                 {{ url_for('main.empleado_panel') }}
-             {% elif session['rol'] == 'supervisor' %}
+             {% elif current_user.role == 'supervisor' %}
                 {{ url_for('main.supervisor_panel') }}
-             {% elif session['rol'] == 'admin' %}
+             {% elif current_user.role == 'administrador' %}
                 {{ url_for('main.admin_panel') }}
+             {% else %}
+                {{ url_for('main.login') }}
              {% endif %}" class="btn btn-secondary">
       Volver al Panel
     </a>

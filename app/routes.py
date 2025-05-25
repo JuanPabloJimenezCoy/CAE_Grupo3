@@ -462,22 +462,59 @@ def ver_empleados_asignados():
 
     return render_template(TEMPLATE_MIS_EMPLEADOS, empleados=empleados)
 
+
 @main_bp.route('/mi-qr')
 @login_required
 def ver_mi_qr():
     import qrcode
     import io
     import base64
+    from datetime import date
 
     documento = current_user.documento
-    url = f"https://cae-grupo3.onrender.com/registro-qr?doc={documento}"
+    mensaje = None
 
+    if request.args.get('scan') == 'true':
+        conn = get_connection()
+        cur = conn.cursor()
+        hoy = date.today()
+
+        # Consultar último registro del día
+        cur.execute("""
+            SELECT tipo FROM asistencia
+            WHERE documento_empleado = %s AND fecha = %s
+            ORDER BY hora_entrada DESC LIMIT 1
+        """, (documento, hoy))
+        resultado = cur.fetchone()
+
+        if not resultado or resultado[0] == 'salida':
+            # Registrar entrada
+            minutos_retraso = 0  # Aquí puedes calcularlo según horario esperado
+            mensaje = registrar_asistencia_y_mensaje(cur, conn, documento, metodo='qr', minutos_retraso=minutos_retraso)
+        else:
+            # Registrar salida
+            try:
+                cur.execute("""
+                    INSERT INTO asistencia_salida (documento_empleado, hora_salida, fecha)
+                    VALUES (%s, NOW(), %s)
+                """, (documento, hoy))
+                conn.commit()
+                mensaje = "✅ Salida registrada correctamente."
+            except Exception as e:
+                conn.rollback()
+                mensaje = f"Error al registrar salida: {str(e).splitlines()[0]}"
+
+        cur.close()
+        conn.close()
+
+    # Generar el QR como siempre
+    url = f"https://cae-grupo3.onrender.com/mi-qr?scan=true"
     qr = qrcode.make(url)
     buffer = io.BytesIO()
     qr.save(buffer, format='PNG')
     qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento)
+    return render_template('mi_qr.html', qr_base64=qr_base64, documento=documento, mensaje=mensaje)
 
 
 @main_bp.route('/admin/asignar-y-gestionar-horarios', methods=['GET', 'POST'])
