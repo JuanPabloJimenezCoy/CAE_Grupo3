@@ -474,7 +474,7 @@ def ver_mi_qr():
     import base64
 
     documento = current_user.documento
-    url = f"http://localhost:5000/registro-qr?doc={documento}"
+    url = f"https://cae-grupo3.onrender.com/registro-qr?doc={documento}"
 
     qr = qrcode.make(url)
     buffer = io.BytesIO()
@@ -549,7 +549,6 @@ def asignar_y_gestionar_horarios():
     """)
     empleados_no_asignados = cur.fetchall()
 
-    # Empleados con horario (para gestión)
     cur.execute("""
         SELECT e.id_empleado, e.nombre, e.apellido, h.hora_entrada, h.hora_salida, h.dias_laborales
         FROM horarios h
@@ -577,7 +576,6 @@ def esta_en_horario(documento):
     conn = get_connection()
     cur = conn.cursor()
 
-    # Buscar ID del empleado
     cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento,))
     result = cur.fetchone()
     if not result:
@@ -587,7 +585,6 @@ def esta_en_horario(documento):
 
     id_empleado = result[0]
 
-    # Buscar horario asignado
     cur.execute("""
         SELECT dias_laborales, hora_entrada, hora_salida
         FROM horarios
@@ -602,10 +599,9 @@ def esta_en_horario(documento):
 
     dias_str, hora_entrada, hora_salida = horario
 
-    # Hora y día actual en Colombia
     zona_colombia = pytz.timezone(ZONA_HORARIA_CO)
     ahora = datetime.now(zona_colombia)
-    dia_actual = ahora.strftime('%a').lower()[0]  # 'l', 'm', 'w', etc.
+    dia_actual = ahora.strftime('%a').lower()[0]
     hora_actual = ahora.time()
 
     cur.close()
@@ -770,7 +766,7 @@ def revisar_tiempo_extra():
 
     if request.method == 'POST':
         id_solicitud = request.form.get('id_solicitud')
-        accion = request.form.get('accion')  # 'aprobar' o 'rechazar'
+        accion = request.form.get('accion')
 
         if id_solicitud and accion in ['aprobar', 'rechazar']:
             nuevo_estado = 'Aprobado' if accion == 'aprobar' else 'Rechazado'
