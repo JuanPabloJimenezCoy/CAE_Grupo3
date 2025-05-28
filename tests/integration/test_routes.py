@@ -114,9 +114,9 @@ def test_entrada_supervisor_exito(client, monkeypatch, supervisor_usuario):
             self.params = params
         def fetchone(self):
             if "asistencia" in self.query:
-                return None  # No ha registrado entrada hoy
+                return None
             if "supervisor" in self.query:
-                return {"documento": "456"}  # PIN correcto
+                return {"documento": "456"}
             return None
         def close(self): pass
 
@@ -137,7 +137,7 @@ def test_entrada_supervisor_exito(client, monkeypatch, supervisor_usuario):
 def test_entrada_supervisor_ya_registrada(client, monkeypatch, supervisor_usuario):
     class MockCursor:
         def execute(self, query, params): self.query = query
-        def fetchone(self): return (1,)  # Ya registrada
+        def fetchone(self): return (1,)
         def close(self): pass
 
     class MockConn:
@@ -161,7 +161,7 @@ def test_entrada_supervisor_pin_invalido(client, monkeypatch, supervisor_usuario
             if "asistencia" in self.query:
                 return None
             if "supervisor" in self.query:
-                return None  # PIN incorrecto
+                return None
         def close(self): pass
 
     class MockConn:
@@ -191,20 +191,16 @@ def test_entrada_admin_exito(client, monkeypatch, admin_usuario):
     assert "Entrada registrada con éxito." in mensaje.text
 
 def test_entrada_admin_ya_registrada(client, monkeypatch, admin_usuario):
-    # Simulo la respuesta de services.registrar_entrada_admin
     monkeypatch.setattr("app.services.registrar_entrada_admin", lambda doc, metodo, valor: "Ya registraste tu entrada hoy.")
 
-    # Hago el POST como admin
     response = client.post('/admin/entrada', data={
         "metodo": "pin",
         "valor": "adminpass"
     })
 
-    # Analizo la respuesta HTML
     soup = BeautifulSoup(response.data, 'html.parser')
     mensaje = soup.find(id='mensaje-exito')
 
-    # Verifico que se muestre correctamente el mensaje
     assert mensaje is not None
     assert "ya registraste tu entrada hoy" in mensaje.text.lower()
 
@@ -216,7 +212,7 @@ def test_entrada_admin_pin_invalido(client, monkeypatch, admin_usuario):
             if "asistencia" in self.query:
                 return None
             if "administrador" in self.query:
-                return None  # PIN incorrecto
+                return None
         def close(self): pass
 
     class MockConn:
@@ -240,7 +236,7 @@ def test_salida_supervisor_exito(client, monkeypatch, supervisor_usuario):
             if "supervisor" in self.query:
                 return {"documento": "456"}
             if "asistencia" in self.query:
-                return (123,)  # asistencia abierta (como tupla)
+                return (123,)
             if "horarios" in self.query:
                 return ("17:00:00",)
         def close(self): pass
@@ -266,7 +262,7 @@ def test_salida_supervisor_pin_invalido(client, monkeypatch, supervisor_usuario)
             self.query = query
         def fetchone(self):
             if "supervisor" in self.query:
-                return None  # PIN incorrecto
+                return None
         def close(self): pass
 
     class MockConn:
@@ -292,7 +288,7 @@ def test_salida_supervisor_sin_entrada(client, monkeypatch, supervisor_usuario):
             if "supervisor" in self.query:
                 return {"documento": "456"}
             if "asistencia" in self.query:
-                return None  # no asistencia abierta
+                return None
         def close(self): pass
 
     class MockConn:
@@ -310,116 +306,53 @@ def test_salida_supervisor_sin_entrada(client, monkeypatch, supervisor_usuario):
 
     assert b"No hay entrada registrada hoy" in response.data or b"ya registraste la salida" in response.data
 
-@pytest.mark.xfail(reason="En revisión: Error TypeError 'int' object is not subscriptable en producción")
 def test_salida_admin_exito(client, monkeypatch, admin_usuario):
-    class MockCursor:
-        def execute(self, query, params):
-            self.query = query
-        def fetchone(self):
-            if "administrador" in self.query:
-                return {"documento": "789"}
-            if "asistencia" in self.query:
-                return 123
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def commit(self): pass
-        def rollback(self): pass
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.registrar_salida_admin", lambda doc, metodo, valor: "Salida registrada con éxito.")
 
     response = client.post('/admin/salida', data={
         "metodo": "pin",
         "valor": "7890"
     })
 
-    assert b"Salida registrada con \xc3\xa9xito" in response.data or b"salida registrada" in response.data
+    assert b"Salida registrada con \xc3\xa9xito" in response.data or b"salida registrada" in response.data.lower()
+
 
 def test_salida_admin_pin_invalido(client, monkeypatch, admin_usuario):
-    class MockCursor:
-        def execute(self, query, params):
-            self.query = query
-        def fetchone(self):
-            if "administrador" in self.query:
-                return None
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def rollback(self): pass
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
-    monkeypatch.setattr("app.routes.cerrar_y_render_salida", lambda cur, conn, msg: msg)
+    monkeypatch.setattr("app.services.registrar_salida_admin", lambda doc, metodo, valor: "PIN o tarjeta incorrecta.")
 
     response = client.post('/admin/salida', data={
         "metodo": "pin",
         "valor": "wrong"
     })
 
-    assert b"PIN o tarjeta incorrecta" in response.data or b"incorrecta" in response.data
+    assert b"pin o tarjeta incorrecta" in response.data.lower()
 
 def test_salida_admin_sin_entrada(client, monkeypatch, admin_usuario):
-    class MockCursor:
-        def execute(self, query, params):
-            self.query = query
-        def fetchone(self):
-            if "administrador" in self.query:
-                return {"documento": "789"}
-            if "asistencia" in self.query:
-                return None
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def rollback(self): pass
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
-    monkeypatch.setattr("app.routes.cerrar_y_render_salida", lambda cur, conn, msg: msg)
+    monkeypatch.setattr("app.services.registrar_salida_admin", lambda doc, metodo, valor: "No has registrado entrada hoy.")
 
     response = client.post('/admin/salida', data={
         "metodo": "pin",
         "valor": "7890"
     })
 
-    assert b"No hay entrada registrada hoy" in response.data or b"ya registraste la salida" in response.data
+    assert b"no has registrado entrada hoy" in response.data.lower()
 
-@pytest.mark.xfail(reason="En revisión: no está mostrando retrasos en el HTML")
 def test_ver_retrasos_supervisor_exito(client, monkeypatch, supervisor_usuario):
-    class MockCursor:
-        def __init__(self):
-            self.last_query = ""
-
-        def execute(self, query, params):
-            self.last_query = query
-
-        def fetchone(self):
-            if "FROM supervisor WHERE documento" in self.last_query:
-                return (1,)
-            return None
-
-        def fetchall(self):
-            return [
-                ('Juan', 'Perez', 3, 45),
-                ('Maria', 'Lopez', 1, 15)
-            ]
-
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.obtener_retrasos_supervisor", lambda doc: (
+        [
+            ('Juan', 'Perez', 3, 45),
+            ('Maria', 'Lopez', 1, 15)
+        ],
+        None
+    ))
 
     response = client.get('/supervisor/retrasos')
 
     assert response.status_code == 200
-    assert b'Juan' in response.data or b'Perez' in response.data
-    assert b'Maria' in response.data or b'Lopez' in response.data
+    assert b'Juan' in response.data
+    assert b'Perez' in response.data
+    assert b'Maria' in response.data
+    assert b'Lopez' in response.data
 
 def test_ver_retrasos_supervisor_no_encontrado(client, monkeypatch, supervisor_usuario):
     class MockCursor:
@@ -427,7 +360,7 @@ def test_ver_retrasos_supervisor_no_encontrado(client, monkeypatch, supervisor_u
             self.query = query
         def fetchone(self):
             if "supervisor" in self.query:
-                return None  # Simular que no se encontró
+                return None
         def close(self): pass
 
     class MockConn:
@@ -441,39 +374,22 @@ def test_ver_retrasos_supervisor_no_encontrado(client, monkeypatch, supervisor_u
     assert response.status_code == 200
     assert b"No se encontr" in response.data or b"supervisor" in response.data
 
-@pytest.mark.xfail(reason="En revisión: falla al validar empleados asignados en el HTML")
 def test_ver_empleados_asignados_exito(client, monkeypatch, supervisor_usuario):
-    class MockCursor:
-        def __init__(self):
-            self.last_query = ""
-
-        def execute(self, query, params):
-            self.last_query = query
-
-        def fetchone(self):
-            if "FROM supervisor WHERE documento" in self.last_query:
-                return (1,)
-            return None
-
-        def fetchall(self):
-            return [
-                ('Juan', 'Perez'),
-                ('Maria', 'Lopez')
-            ]
-
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.obtener_empleados_asignados", lambda doc: (
+        [
+            ('Juan', 'Perez'),
+            ('Maria', 'Lopez')
+        ],
+        None
+    ))
 
     response = client.get('/supervisor/mis-empleados')
 
     assert response.status_code == 200
-    assert b'Juan' in response.data or b'Perez' in response.data
-    assert b'Maria' in response.data or b'Lopez' in response.data
+    assert b'Juan' in response.data
+    assert b'Perez' in response.data
+    assert b'Maria' in response.data
+    assert b'Lopez' in response.data
 
 def test_ver_empleados_asignados_no_supervisor(client, monkeypatch, supervisor_usuario):
     class MockCursor:
@@ -485,7 +401,7 @@ def test_ver_empleados_asignados_no_supervisor(client, monkeypatch, supervisor_u
 
         def fetchone(self):
             if "FROM supervisor WHERE documento" in self.last_query:
-                return None  # Simulando que no se encontró el supervisor
+                return None
             return None
 
         def fetchall(self):
@@ -553,18 +469,8 @@ def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usu
     assert response.status_code == 200
     assert "Horario asignado correctamente" in html or "Horario asignado correctamente.".lower() in html.lower()
 
-@pytest.mark.xfail(reason="En revisión: solicitar tiempo extra con archivos y inserts")
 def test_solicitar_tiempo_extra_post(client, monkeypatch, empleado_usuario):
-    class MockCursor:
-        def execute(self, query, params): pass
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def commit(self): pass
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.registrar_tiempo_extra", lambda doc, fecha, hi, hf, motivo, archivo: "Solicitud enviada correctamente.")
 
     response = client.post('/empleado/tiempo-extra', data={
         "fecha": "2024-05-01",
@@ -574,28 +480,16 @@ def test_solicitar_tiempo_extra_post(client, monkeypatch, empleado_usuario):
     })
 
     assert response.status_code == 200
-    assert b"Solicitud enviada correctamente" in response.data or b"solicitud" in response.data
+    assert b"solicitud enviada correctamente" in response.data.lower()
 
-@pytest.mark.xfail(reason="En revisión: enviar aviso con archivos y inserts complejos")
 def test_enviar_aviso_post_valido(client, monkeypatch, supervisor_usuario):
-    class MockCursor:
-        def execute(self, query, params): pass
-        def fetchall(self): return []
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def commit(self): pass
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.enviar_aviso_supervisor", lambda doc_sup, id_emp, archivo: (True, 'Aviso enviado exitosamente.'))
 
     response = client.post('/supervisor/avisos', data={
         "id_empleado": "1"
     })
 
-    assert response.status_code == 200
-    assert b"Aviso enviado exitosamente" in response.data or b"aviso" in response.data
+    assert response.status_code == 302
 
 def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
@@ -635,7 +529,6 @@ def test_asignar_y_gestionar_get(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params=None): pass
         def fetchall(self):
-            # Devolvemos al menos un registro de asignación simulada
             return [
                 (1, 'Carlos', 'Gomez', 10, 'Juan', 'Perez')
             ]
@@ -699,50 +592,35 @@ def test_asignar_y_gestionar_horarios_get(client, monkeypatch, admin_usuario):
     assert response.status_code == 200
     assert b'Juan' in response.data or b'Perez' in response.data
 
-@pytest.mark.xfail(reason="En revisión: verificar solicitudes de tiempo extra no muestra los datos esperados en HTML")
 def test_ver_tiempo_extra_empleado_get(client, monkeypatch, empleado_usuario):
-    class MockCursor:
-        def execute(self, query, params): pass
-        def fetchall(self):
-            return [
-                (1, '2024-05-01', '18:00', '20:00', 'Trabajo urgente', None, 'Pendiente')
-            ]
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.obtener_solicitudes_tiempo_extra", lambda doc: (
+        [
+            (1, '2024-05-01', '18:00', '20:00', 'Trabajo urgente', None, 'Pendiente')
+        ],
+        None
+    ))
 
     response = client.get('/empleado/mis_solicitudes_tiempo-extra')
 
     assert response.status_code == 200
-    assert b'Trabajo urgente' in response.data or b'Pendiente' in response.data
+    assert b'Trabajo urgente' in response.data
+    assert b'Pendiente' in response.data
 
-@pytest.mark.xfail(reason="En revisión: supervisor tiempo extra GET no muestra datos por flujo no completo en mocks")
 def test_revisar_tiempo_extra_get(client, monkeypatch, supervisor_usuario):
-    class MockCursor:
-        def execute(self, query, params): pass
-        def fetchall(self):
-            return [
-                (1, 'Juan', 'Perez', '2024-05-01', '18:00', '20:00', 'Motivo urgente', None, 'Pendiente')
-            ]
-        def fetchone(self):
-            return (1,)  # Simular id_supervisor en primer query
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.obtener_solicitudes_tiempo_extra_supervisor", lambda doc: (
+        [
+            (1, 'Juan', 'Perez', '2024-05-01', '18:00', '20:00', 'Motivo urgente', None, 'Pendiente')
+        ],
+        None
+    ))
 
     response = client.get('/supervisor/tiempo-extra')
 
     assert response.status_code == 200
-    assert b'Juan' in response.data or b'Perez' in response.data
-    assert b'Motivo urgente' in response.data or b'Pendiente' in response.data
+    assert b'Juan' in response.data
+    assert b'Perez' in response.data
+    assert b'Motivo urgente' in response.data
+    assert b'Pendiente' in response.data
 
 def test_revisar_tiempo_extra_post_aprobar(client, monkeypatch, supervisor_usuario):
     class MockCursor:
@@ -767,44 +645,27 @@ def test_revisar_tiempo_extra_post_aprobar(client, monkeypatch, supervisor_usuar
 
     assert response.status_code == 200
 
-@pytest.mark.xfail(reason="En revisión: empleado avisos GET no muestra datos por flujo incompleto en mocks")
 def test_ver_avisos_empleado_get(client, monkeypatch, empleado_usuario):
-    class MockCursor:
-        def execute(self, query, params): pass
-        def fetchone(self):
-            return (1,)  # Simula id_empleado
-        def fetchall(self):
-            return [
-                ('2024-05-01', 'archivo_1.pdf')
-            ]
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.obtener_avisos_empleado", lambda doc: (
+        [
+            ('2024-05-01', 'archivo_1.pdf')
+        ],
+        None
+    ))
 
     response = client.get('/empleado/avisos')
 
     assert response.status_code == 200
-    assert b'archivo_1.pdf' in response.data or b'2024-05-01' in response.data
+    assert b'archivo_1.pdf' in response.data
+    assert b'2024-05-01' in response.data
 
-@pytest.mark.xfail(reason="En revisión: admin avisos no muestra datos esperados en HTML con mocks simples")
 def test_ver_avisos_admin_get(client, monkeypatch, admin_usuario):
-    class MockCursor:
-        def execute(self, query, params=None): pass
-        def fetchall(self):
-            return [
-                ('2024-05-01', 'Juan Perez', 'Laura Lopez', 'archivo_1.pdf')
-            ]
-        def close(self): pass
-
-    class MockConn:
-        def cursor(self): return MockCursor()
-        def close(self): pass
-
-    monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
+    monkeypatch.setattr("app.services.obtener_avisos_admin", lambda: (
+        [
+            ('2024-05-01', 'Juan Perez', 'Laura Lopez', 'archivo_1.pdf')
+        ],
+        None
+    ))
 
     response = client.get('/admin/avisos')
 
@@ -817,7 +678,6 @@ def test_ver_avisos_admin_get(client, monkeypatch, admin_usuario):
 def test_descargar_justificativo(client, monkeypatch, empleado_usuario):
     from flask import Response
 
-    # Mock robusto
     monkeypatch.setattr("app.routes.send_from_directory", lambda dir, filename, as_attachment=True: Response(f"Mock archivo {filename}", mimetype='application/pdf'))
 
     response = client.get('/descargar/justificativo/archivo_1.pdf')
@@ -825,12 +685,10 @@ def test_descargar_justificativo(client, monkeypatch, empleado_usuario):
     assert response.status_code == 200
     assert b'Mock archivo archivo_1.pdf' in response.data
 
-@pytest.mark.xfail(reason="En revisión: la ruta /uploads/avisos sigue devolviendo 404 por temas de mock no interceptado")
 def test_descargar_aviso(client, monkeypatch, empleado_usuario):
     from flask import Response
 
-    # Se deja en xfail porque sigue devolviendo 404
-    monkeypatch.setattr("app.routes.send_from_directory", lambda dir, filename: Response(f"Mock aviso {filename}", mimetype='application/pdf'))
+    monkeypatch.setattr("flask.send_from_directory", lambda dir, filename: Response(f"Mock aviso {filename}", mimetype='application/pdf'))
 
     response = client.get('/uploads/avisos/aviso_1.pdf')
 
@@ -842,5 +700,5 @@ def test_ver_mi_qr(client, monkeypatch, empleado_usuario):
 
     html = response.data.decode('utf-8')
     assert response.status_code == 200
-    assert '<img' in html  # Confirma que hay una imagen QR
-    assert 'data:image/png;base64' in html  # Confirma que es base64
+    assert '<img' in html
+    assert 'data:image/png;base64' in html

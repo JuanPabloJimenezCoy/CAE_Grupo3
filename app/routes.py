@@ -297,32 +297,14 @@ def vista_registro_salida_admin():
     if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = current_user.documento
+    if request.method == 'POST':
+        documento = current_user.documento
+        metodo = request.form['metodo']
+        valor = request.form['valor']
+        mensaje = services.registrar_salida_admin(documento, metodo, valor)
+        return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
 
-    if request.method != 'POST':
-        return render_template(TEMPLATE_REGISTRO_SALIDA)
-
-    metodo = request.form['metodo']
-    valor = request.form['valor']
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    if not validar_credencial_generico(cur, documento, metodo, valor, 'administrador'):
-        return cerrar_y_render_salida(cur, conn, MENSAJE_PIN_INCORRECTO)
-
-    asistencia_id = obtener_asistencia_abierta(cur, documento)
-    if not asistencia_id:
-        return cerrar_y_render_salida(cur, conn, MENSAJE_NO_ENTRADA_HOY)
-
-    mensaje = calcular_mensaje_salida_admin(cur, documento)
-
-    registrar_salida(cur, asistencia_id)
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return render_template(TEMPLATE_REGISTRO_SALIDA, mensaje=mensaje)
+    return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
 @main_bp.route('/admin/asignar-y-gestionar', methods=['GET', 'POST'])
@@ -427,39 +409,14 @@ def asignar_y_gestionar():
 @main_bp.route('/supervisor/mis-empleados')
 @login_required
 def ver_empleados_asignados():
-    from .database import get_connection
-
     if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
     documento = current_user.documento
+    empleados, error = services.obtener_empleados_asignados(documento)
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT id_supervisor FROM supervisor WHERE documento = %s
-    """, (documento,))
-    result = cur.fetchone()
-
-    if not result:
-        cur.close()
-        conn.close()
-        return render_template(TEMPLATE_PANEL_SUPERVISOR, error="No se pudo encontrar el supervisor.")
-
-    id_supervisor = result[0]
-
-    cur.execute("""
-        SELECT e.nombre, e.apellido
-        FROM empleado_supervisor es
-        JOIN empleado e ON es.id_empleado = e.id_empleado
-        WHERE es.id_supervisor = %s
-        ORDER BY e.apellido
-    """, (id_supervisor,))
-    empleados = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    if error:
+        return render_template(TEMPLATE_PANEL_SUPERVISOR, error=error)
 
     return render_template(TEMPLATE_MIS_EMPLEADOS, empleados=empleados)
 
@@ -634,40 +591,14 @@ def esta_en_horario(documento):
 @main_bp.route('/supervisor/retrasos')
 @login_required
 def ver_retrasos():
-    from .database import get_connection
-
     if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
     documento = current_user.documento
+    retrasos, error = services.obtener_retrasos_supervisor(documento)
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute(SQL_SELECT_ID_SUPERVISOR, (documento,))
-    result = cur.fetchone()
-    if not result:
-        cur.close()
-        conn.close()
-        return render_template(TEMPLATE_PANEL_SUPERVISOR, error="No se encontró el supervisor.")
-
-    id_supervisor = result[0]
-
-    cur.execute("""
-        SELECT e.nombre, e.apellido,
-               COUNT(a.minutos_retraso) AS veces_tarde,
-               SUM(a.minutos_retraso) AS total_retraso
-        FROM empleado_supervisor es
-        JOIN empleado e ON es.id_empleado = e.id_empleado
-        JOIN asistencia a ON e.documento = a.documento_empleado
-        WHERE es.id_supervisor = %s AND a.minutos_retraso > 0
-        GROUP BY e.id_empleado, e.nombre, e.apellido
-        ORDER BY total_retraso DESC
-    """, (id_supervisor,))
-    retrasos = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    if error:
+        return render_template(TEMPLATE_PANEL_SUPERVISOR, error=error)
 
     return render_template(TEMPLATE_REPORTE_RETRASOS, retrasos=retrasos)
 
@@ -720,49 +651,20 @@ def exportar_retrasos():
 @main_bp.route('/empleado/tiempo-extra', methods=['GET', 'POST'])
 @login_required
 def solicitar_tiempo_extra():
-    from .database import get_connection
-    from flask import current_app
-    from datetime import date
-    import os
-    from werkzeug.utils import secure_filename
-
-    def archivo_valido(nombre):
-        return '.' in nombre and nombre.rsplit('.', 1)[1].lower() in {
-            'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'
-        }
-
     if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
-    documento = current_user.documento
-
     if request.method == 'POST':
+        documento = current_user.documento
         fecha = request.form['fecha']
         hora_inicio = request.form['hora_inicio']
         hora_fin = request.form['hora_fin']
         motivo = request.form['motivo']
         archivo = request.files.get('archivo')
-        nombre_archivo = None
 
-        if archivo and archivo.filename and archivo_valido(archivo.filename):
-            nombre_archivo = f"{documento}_{fecha}_{secure_filename(archivo.filename)}"
-            ruta_guardado = os.path.join(current_app.root_path, 'uploads', 'tiempo_extra', nombre_archivo)
-            os.makedirs(os.path.dirname(ruta_guardado), exist_ok=True)
-            archivo.save(ruta_guardado)
+        mensaje = services.registrar_tiempo_extra(documento, fecha, hora_inicio, hora_fin, motivo, archivo)
 
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO tiempo_extra (
-                documento_empleado, fecha, hora_inicio, hora_fin, motivo, archivo_justificacion
-            ) VALUES (%s, %s, %s, %s, %s, %s)
-        """, (documento, fecha, hora_inicio, hora_fin, motivo, nombre_archivo))
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return render_template(TEMPLATE_SOLICITAR_TIEMPO_EXTRA, mensaje="Solicitud enviada correctamente.")
+        return render_template(TEMPLATE_SOLICITAR_TIEMPO_EXTRA, mensaje=mensaje)
 
     return render_template(TEMPLATE_SOLICITAR_TIEMPO_EXTRA)
 
@@ -770,46 +672,28 @@ def solicitar_tiempo_extra():
 @main_bp.route('/supervisor/tiempo-extra', methods=['GET', 'POST'])
 @login_required
 def revisar_tiempo_extra():
-    from .database import get_connection
-
     if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
-
-    documento = current_user.documento
-    conn = get_connection()
-    cur = conn.cursor()
 
     if request.method == 'POST':
         id_solicitud = request.form.get('id_solicitud')
         accion = request.form.get('accion')
 
-        if id_solicitud and accion in ['aprobar', 'rechazar']:
-            nuevo_estado = 'Aprobado' if accion == 'aprobar' else 'Rechazado'
-            cur.execute("""
-                UPDATE tiempo_extra
-                SET estado = %s
-                WHERE id = %s
-            """, (nuevo_estado, id_solicitud))
-            conn.commit()
-            flash('Solicitud actualizada exitosamente.', 'success')
+        ok, mensaje = services.actualizar_estado_tiempo_extra(id_solicitud, accion)
+
+        if ok:
+            flash(mensaje, 'success')
+        else:
+            flash(mensaje, 'danger')
 
         return redirect(url_for('main.revisar_tiempo_extra'))
 
-    cur.execute("""
-        SELECT te.id, e.nombre, e.apellido, te.fecha, te.hora_inicio, te.hora_fin,
-               te.motivo, te.archivo_justificacion, te.estado
-        FROM tiempo_extra te
-        JOIN empleado e ON te.documento_empleado = e.documento
-        JOIN empleado_supervisor es ON e.id_empleado = es.id_empleado
-        JOIN supervisor s ON s.id_supervisor = es.id_supervisor
-        WHERE s.documento = %s
-        ORDER BY te.fecha DESC
-    """, (documento,))
+    documento = current_user.documento
+    solicitudes, error = services.obtener_solicitudes_tiempo_extra_supervisor(documento)
 
-    solicitudes = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    if error:
+        flash(error, 'danger')
+        solicitudes = []
 
     return render_template(TEMPLATE_REVISAR_TIEMPO_EXTRA, solicitudes=solicitudes)
 
@@ -826,26 +710,15 @@ def descargar_justificativo(filename):
 @main_bp.route('/empleado/mis_solicitudes_tiempo-extra', methods=['GET'])
 @login_required
 def ver_tiempo_extra_empleado():
-    from .database import get_connection
-
     if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
     documento = current_user.documento
-    conn = get_connection()
-    cur = conn.cursor()
+    solicitudes, error = services.obtener_solicitudes_tiempo_extra(documento)
 
-    cur.execute("""
-        SELECT id, fecha, hora_inicio, hora_fin, motivo, archivo_justificacion, estado
-        FROM tiempo_extra
-        WHERE documento_empleado = %s
-        ORDER BY fecha DESC
-    """, (documento,))
-
-    solicitudes = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    if error:
+        flash(error, 'danger')
+        solicitudes = []
 
     return render_template(TEMPLATE_VER_SOLICITUDES_EXTRA, solicitudes=solicitudes)
 
@@ -853,43 +726,25 @@ def ver_tiempo_extra_empleado():
 @main_bp.route('/supervisor/avisos', methods=['GET', 'POST'])
 @login_required
 def enviar_aviso():
-    from .database import get_connection
-    import os
-    from werkzeug.utils import secure_filename
-    from flask import current_app
-
     if current_user.role != 'supervisor':
         return redirect(url_for(LOGIN_ROUTE))
 
     documento_supervisor = current_user.documento
-    conn = get_connection()
-    cur = conn.cursor()
 
     if request.method == 'POST':
         id_empleado = request.form.get('id_empleado')
         archivo = request.files.get('archivo')
 
-        if id_empleado and archivo:
-            filename = secure_filename(archivo.filename)
-            ruta_guardado = os.path.join(current_app.root_path, 'uploads', 'avisos')
-            os.makedirs(ruta_guardado, exist_ok=True)
-            archivo.save(os.path.join(ruta_guardado, filename))
+        ok, mensaje = services.enviar_aviso_supervisor(documento_supervisor, id_empleado, archivo)
 
-            cur.execute(SQL_SELECT_ID_SUPERVISOR, (documento_supervisor,))
-            supervisor = cur.fetchone()
+        if ok:
+            flash(mensaje, 'success')
+            return redirect(url_for('main.enviar_aviso'))
+        else:
+            flash(mensaje, 'danger')
 
-            if supervisor:
-                id_supervisor = supervisor[0]
-                cur.execute("""
-                    INSERT INTO avisos (id_empleado, id_supervisor, archivo_justificativo)
-                    VALUES (%s, %s, %s)
-                """, (id_empleado, id_supervisor, filename))
-                conn.commit()
-                flash('Aviso enviado exitosamente.', 'success')
-                return redirect(url_for('main.enviar_aviso'))
-            else:
-                flash('Supervisor no encontrado.', 'danger')
-
+    conn = get_connection()
+    cur = conn.cursor()
     cur.execute("""
         SELECT e.id_empleado, e.nombre, e.apellido
         FROM empleado e
@@ -898,7 +753,6 @@ def enviar_aviso():
         WHERE s.documento = %s
     """, (documento_supervisor,))
     empleados = cur.fetchall()
-
     cur.close()
     conn.close()
 
@@ -908,32 +762,15 @@ def enviar_aviso():
 @main_bp.route('/empleado/avisos', methods=['GET'])
 @login_required
 def ver_avisos_empleado():
-    from .database import get_connection
-
     if current_user.role != 'empleado':
         return redirect(url_for(LOGIN_ROUTE))
 
-    conn = get_connection()
-    cur = conn.cursor()
-
     documento_empleado = current_user.documento
-    cur.execute(SQL_SELECT_ID_EMPLEADO_POR_DOCUMENTO, (documento_empleado,))
-    empleado = cur.fetchone()
+    avisos, error = services.obtener_avisos_empleado(documento_empleado)
 
-    if empleado:
-        id_empleado = empleado[0]
-        cur.execute("""
-            SELECT fecha, archivo_justificativo
-            FROM avisos
-            WHERE id_empleado = %s
-            ORDER BY fecha DESC
-        """, (id_empleado,))
-        avisos = cur.fetchall()
-    else:
+    if error:
+        flash(error, 'danger')
         avisos = []
-
-    cur.close()
-    conn.close()
 
     return render_template(TEMPLATE_VER_AVISOS, avisos=avisos)
 
@@ -951,27 +788,13 @@ def descargar_aviso(filename):
 @main_bp.route('/admin/avisos', methods=['GET'])
 @login_required
 def ver_avisos_admin():
-    from .database import get_connection
-
     if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
-    conn = get_connection()
-    cur = conn.cursor()
+    avisos, error = services.obtener_avisos_admin()
 
-    cur.execute("""
-        SELECT a.fecha, e.nombre || ' ' || e.apellido AS empleado,
-               s.nombre || ' ' || s.apellido AS supervisor,
-               a.archivo_justificativo
-        FROM avisos a
-        JOIN empleado e ON a.id_empleado = e.id_empleado
-        JOIN supervisor s ON a.id_supervisor = s.id_supervisor
-        ORDER BY a.fecha DESC
-    """)
-
-    avisos = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    if error:
+        flash(error, 'danger')
+        avisos = []
 
     return render_template(TEMPLATE_VER_AVISOS_ADMIN, avisos=avisos)
