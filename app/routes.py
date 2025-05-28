@@ -351,22 +351,19 @@ def ver_mi_qr():
 
     documento = current_user.documento
 
-    # Si viene del escaneo (con ?scan=true), solo registrar y devolver vacío
     if request.args.get('scan') == 'true':
         conn = get_connection()
         cur = conn.cursor()
 
-        # Procesar entrada/salida según tu lógica
         mensaje = registrar_entrada_empleado(documento, metodo='qr', valor=None)
         app.logger.info(f"Registro QR para {documento}: {mensaje}")
 
         cur.close()
         conn.close()
 
-        return Response(status=204)  # Respuesta vacía al escáner
+        return Response(status=204)
 
-    # Si no es escaneo, generar y mostrar el QR en la página
-    url = f"https://cae-grupo3.onrender.com/mi-qr?scan=true"
+    url = "https://cae-grupo3.onrender.com/mi-qr?scan=true"
     qr = qrcode.make(url)
     buffer = io.BytesIO()
     qr.save(buffer, format='PNG')

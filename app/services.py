@@ -13,8 +13,11 @@ from .auth import (
     registrar_salida
 )
 
-#Constantes
+# Constantes
 ZONA_HORARIA_CO = 'America/Bogota'
+MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta."
+SQL_SELECT_SUPERVISOR_BY_DOCUMENTO = "SELECT id_supervisor FROM supervisor WHERE documento = %s"
+
 
 def registrar_entrada_empleado(documento, metodo, valor):
     conn = get_connection()
@@ -25,7 +28,7 @@ def registrar_entrada_empleado(documento, metodo, valor):
             return "Ya registraste tu entrada hoy."
 
         if not validar_credencial(cur, documento, metodo, valor):
-            return "PIN o tarjeta incorrecta."
+            return MENSAJE_PIN_INCORRECTO
 
         horario = obtener_horario(cur, documento)
         if not horario:
@@ -53,19 +56,15 @@ def registrar_salida_admin(documento, metodo, valor):
     cur = conn.cursor()
 
     try:
-        # Verificar credencial (usa tu función auxiliar)
         if not validar_credencial_generico(cur, documento, metodo, valor, 'administrador'):
-            return "PIN o tarjeta incorrecta."
+            return MENSAJE_PIN_INCORRECTO
 
-        # Verificar si hay asistencia abierta
         asistencia_id = obtener_asistencia_abierta(cur, documento)
         if not asistencia_id:
             return "No has registrado entrada hoy."
 
-        # Calcular el mensaje de salida
         mensaje = calcular_mensaje_salida_admin(cur, documento)
 
-        # Registrar la salida en la base
         registrar_salida(cur, asistencia_id)
         conn.commit()
         return mensaje
@@ -86,7 +85,7 @@ def obtener_retrasos_supervisor(documento):
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento,))
+        cur.execute(SQL_SELECT_SUPERVISOR_BY_DOCUMENTO, (documento,))
         result = cur.fetchone()
         if not result:
             return None, "No se encontró el supervisor."
@@ -123,7 +122,7 @@ def obtener_empleados_asignados(documento):
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento,))
+        cur.execute(SQL_SELECT_SUPERVISOR_BY_DOCUMENTO, (documento,))
         result = cur.fetchone()
         if not result:
             return None, "No se pudo encontrar el supervisor."
@@ -206,7 +205,7 @@ def enviar_aviso_supervisor(documento_supervisor, id_empleado, archivo):
     cur = conn.cursor()
 
     try:
-        cur.execute("SELECT id_supervisor FROM supervisor WHERE documento = %s", (documento_supervisor,))
+        cur.execute(SQL_SELECT_SUPERVISOR_BY_DOCUMENTO, (documento_supervisor,))
         supervisor = cur.fetchone()
 
         if not supervisor:
@@ -500,7 +499,7 @@ def registrar_entrada_admin(documento, metodo, valor):
             WHERE documento = %s AND {campo} = %s
         """, (documento, valor))
         if not cur.fetchone():
-            return "PIN o tarjeta incorrecta."
+            return MENSAJE_PIN_INCORRECTO
 
         # Registrar entrada
         cur.execute("""
