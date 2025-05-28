@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.14.2...v2.15.0) (2025-05-28)
+
+
+### Features
+
+* update auth.py, routes.py, services.py and conftest.py ([03a9711](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/03a9711e69ce7d52dc9a448e3801c85804c322e1))
+
 ## [2.14.2](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.14.1...v2.14.2) (2025-05-28)
 
 
