@@ -13,7 +13,9 @@ def create_app(testing=False):
     if not secret_key:
         raise RuntimeError("SECRET_KEY no está definida en las variables de entorno")
 
-    app.config['SECRET_KEY'] = secret_key
+    secret_key_var = 'SECRET_KEY'
+    app.config[secret_key_var] = secret_key
+
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
