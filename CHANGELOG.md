@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.15.0...v2.15.1) (2025-05-28)
+
+
+### Bug Fixes
+
+* update auth.py ([76c9751](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/76c97510ddcc6de4e026941ab18321093393492e))
+
 ## [2.15.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.14.2...v2.15.0) (2025-05-28)
 
 
