@@ -370,6 +370,107 @@ def obtener_avisos_admin():
         conn.close()
 
 
+def gestionar_asignaciones_admin(request_form):
+    from .database import get_connection
+
+    conn = get_connection()
+    cur = conn.cursor()
+    mensaje = None
+    error = None
+
+    try:
+        if 'supervisor_id' in request_form and 'empleado_ids' in request_form:
+            # Asignación de empleados a supervisor
+            supervisor_id = request_form['supervisor_id']
+            empleados_seleccionados = request_form.getlist('empleado_ids')
+
+            if not empleados_seleccionados:
+                error = "Selecciona al menos un empleado."
+            else:
+                for empleado_id in empleados_seleccionados:
+                    cur.execute("""
+                        INSERT INTO empleado_supervisor (id_empleado, id_supervisor)
+                        VALUES (%s, %s)
+                        ON CONFLICT DO NOTHING
+                    """, (empleado_id, supervisor_id))
+                conn.commit()
+                mensaje = "Asignación realizada con éxito."
+
+        elif 'empleado_id' in request_form and 'supervisor_id_eliminar' in request_form:
+            # Eliminación de asignación
+            empleado_id = request_form['empleado_id']
+            supervisor_id = request_form['supervisor_id_eliminar']
+
+            cur.execute("""
+                DELETE FROM empleado_supervisor
+                WHERE id_empleado = %s AND id_supervisor = %s
+            """, (empleado_id, supervisor_id))
+            conn.commit()
+            mensaje = "Asignación eliminada con éxito."
+
+        # Obtener supervisores
+        cur.execute("SELECT id_supervisor, nombre, apellido FROM supervisor")
+        supervisores = cur.fetchall()
+
+        # Obtener empleados no asignados
+        cur.execute("""
+            SELECT id_empleado, nombre, apellido FROM empleado
+            WHERE id_empleado NOT IN (
+                SELECT id_empleado FROM empleado_supervisor
+            )
+        """)
+        empleados_no_asignados = cur.fetchall()
+
+        # Obtener registros actuales
+        cur.execute("""
+            SELECT 
+                s.id_supervisor,
+                s.nombre AS nombre_supervisor,
+                s.apellido AS apellido_supervisor,
+                e.id_empleado,
+                e.nombre AS nombre_empleado,
+                e.apellido AS apellido_empleado
+            FROM empleado_supervisor es
+            JOIN supervisor s ON es.id_supervisor = s.id_supervisor
+            JOIN empleado e ON es.id_empleado = e.id_empleado
+            ORDER BY s.id_supervisor, e.apellido
+        """)
+        registros = cur.fetchall()
+
+        # Organizar en diccionario
+        asignaciones = {}
+        for row in registros:
+            id_supervisor = row[0]
+            supervisor_nombre = f"{row[1]} {row[2]}"
+            empleado_id = row[3]
+            empleado_nombre = f"{row[4]} {row[5]}"
+
+            if supervisor_nombre not in asignaciones:
+                asignaciones[supervisor_nombre] = []
+
+            asignaciones[supervisor_nombre].append({
+                'empleado_id': empleado_id,
+                'empleado_nombre': empleado_nombre,
+                'supervisor_id': id_supervisor
+            })
+
+        return {
+            'mensaje': mensaje,
+            'error': error,
+            'supervisores': supervisores,
+            'empleados': empleados_no_asignados,
+            'asignaciones': asignaciones
+        }
+
+    except Exception as e:
+        conn.rollback()
+        return {'mensaje': None, 'error': f"Ocurrió un error: {str(e).splitlines()[0]}"}
+
+    finally:
+        cur.close()
+        conn.close()
+
+
 def registrar_entrada_admin(documento, metodo, valor):
     from .database import get_connection
     from datetime import datetime

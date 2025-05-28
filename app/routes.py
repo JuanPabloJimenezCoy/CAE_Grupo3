@@ -310,99 +310,18 @@ def vista_registro_salida_admin():
 @main_bp.route('/admin/asignar-y-gestionar', methods=['GET', 'POST'])
 @login_required
 def asignar_y_gestionar():
-    from .database import get_connection
-
     if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    mensaje = None
-    error = None
-
-    if request.method == 'POST':
-        # Si viene del formulario de asignación
-        if 'supervisor_id' in request.form and 'empleado_ids' in request.form:
-            supervisor_id = request.form['supervisor_id']
-            empleados_seleccionados = request.form.getlist('empleado_ids')
-
-            if not empleados_seleccionados:
-                error = "Selecciona al menos un empleado."
-            else:
-                for empleado_id in empleados_seleccionados:
-                    cur.execute("""
-                        INSERT INTO empleado_supervisor (id_empleado, id_supervisor)
-                        VALUES (%s, %s)
-                        ON CONFLICT DO NOTHING
-                    """, (empleado_id, supervisor_id))
-                conn.commit()
-                mensaje = "Asignación realizada con éxito."
-
-        # Si viene del formulario de eliminación de asignación
-        elif 'empleado_id' in request.form and 'supervisor_id_eliminar' in request.form:
-            empleado_id = request.form['empleado_id']
-            supervisor_id = request.form['supervisor_id_eliminar']
-
-            cur.execute("""
-                DELETE FROM empleado_supervisor
-                WHERE id_empleado = %s AND id_supervisor = %s
-            """, (empleado_id, supervisor_id))
-            conn.commit()
-            mensaje = "Asignación eliminada con éxito."
-
-    cur.execute(SQL_SELECT_DATOS_SUPERVISOR)
-    supervisores = cur.fetchall()
-
-    cur.execute("""
-        SELECT id_empleado, nombre, apellido FROM empleado
-        WHERE id_empleado NOT IN (
-            SELECT id_empleado FROM empleado_supervisor
-        )
-    """)
-    empleados_no_asignados = cur.fetchall()
-
-    cur.execute("""
-        SELECT 
-            s.id_supervisor,
-            s.nombre AS nombre_supervisor,
-            s.apellido AS apellido_supervisor,
-            e.id_empleado,
-            e.nombre AS nombre_empleado,
-            e.apellido AS apellido_empleado
-        FROM empleado_supervisor es
-        JOIN supervisor s ON es.id_supervisor = s.id_supervisor
-        JOIN empleado e ON es.id_empleado = e.id_empleado
-        ORDER BY s.id_supervisor, e.apellido
-    """)
-    registros = cur.fetchall()
-
-    cur.close()
-    conn.close()
-
-    asignaciones = {}
-    for row in registros:
-        id_supervisor = row[0]
-        supervisor_nombre = f"{row[1]} {row[2]}"
-        empleado_id = row[3]
-        empleado_nombre = f"{row[4]} {row[5]}"
-
-        if supervisor_nombre not in asignaciones:
-            asignaciones[supervisor_nombre] = []
-
-        asignaciones[supervisor_nombre].append({
-            'empleado_id': empleado_id,
-            'empleado_nombre': empleado_nombre,
-            'supervisor_id': id_supervisor
-        })
+    data = services.gestionar_asignaciones_admin(request.form if request.method == 'POST' else {})
 
     return render_template(
-        TEMPLATE_GESTIONAR_ASIGNACIONES,  # Nuevo template combinado
-        supervisores=supervisores,
-        empleados=empleados_no_asignados,
-        asignaciones=asignaciones,
-        mensaje=mensaje,
-        error=error
+        TEMPLATE_GESTIONAR_ASIGNACIONES,
+        supervisores=data.get('supervisores'),
+        empleados=data.get('empleados'),
+        asignaciones=data.get('asignaciones'),
+        mensaje=data.get('mensaje'),
+        error=data.get('error')
     )
 
 
