@@ -9,7 +9,7 @@ from psycopg2.extras import RealDictCursor
 login_manager = LoginManager()
 
 LOGIN_ROUTE = 'main.login'
-MENSAJE_PIN_INCORRECTO = MENSAJE_PIN_INCORRECTO
+MENSAJE_PIN_INCORRECTO = "PIN o tarjeta incorrecta"
 MENSAJE_NO_ENTRADA_HOY = "No hay entrada registrada hoy o ya registraste la salida."
 MENSAJE_SALIDA_REGISTRADA = "Salida registrada con éxito."
 TEMPLATE_REGISTRO_ENTRADA = 'registro_entrada.html'
