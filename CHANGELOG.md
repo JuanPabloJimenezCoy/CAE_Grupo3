@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.14.1](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.14.0...v2.14.1) (2025-05-28)
+
+
+### Bug Fixes
+
+* update routes.py and services.py ([449d1c5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/449d1c5421b5c39eebeadae0d3efb74ce737a948))
+
 ## [2.14.0](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.13.2...v2.14.0) (2025-05-28)
 
 
