@@ -313,7 +313,10 @@ def asignar_y_gestionar():
     if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
-    data = services.gestionar_asignaciones_admin(request.form if request.method == 'POST' else {})
+    if request.method == 'POST':
+        data = services.gestionar_asignaciones_admin(request.form)
+    else:
+        data = services.gestionar_asignaciones_admin({})
 
     return render_template(
         TEMPLATE_GESTIONAR_ASIGNACIONES,
