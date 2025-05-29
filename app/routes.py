@@ -29,6 +29,8 @@ from .auth import (
 
 main_bp = Blueprint('main', __name__)
 
+# VAMOOOSSSSSS
+
 # Mejora del sonar, constantes
 TEMPLATE_PANEL_SUPERVISOR = 'panel_supervisor.html'
 TEMPLATE_PANEL_EMPLEADO = 'panel_empleado.html'
