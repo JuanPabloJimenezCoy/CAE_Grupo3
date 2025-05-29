@@ -148,7 +148,9 @@ def test_entrada_supervisor_ya_registrada(client, monkeypatch, supervisor_usuari
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -168,11 +170,15 @@ def test_entrada_supervisor_pin_invalido(client, monkeypatch, supervisor_usuario
                 return None
             if "supervisor" in self.query:
                 return None
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -219,11 +225,15 @@ def test_entrada_admin_pin_invalido(client, monkeypatch, admin_usuario):
                 return None
             if "administrador" in self.query:
                 return None
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -245,13 +255,17 @@ def test_salida_supervisor_exito(client, monkeypatch, supervisor_usuario):
                 return (123,)
             if "horarios" in self.query:
                 return ("17:00:00",)
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
         def rollback(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -269,12 +283,16 @@ def test_salida_supervisor_pin_invalido(client, monkeypatch, supervisor_usuario)
         def fetchone(self):
             if "supervisor" in self.query:
                 return None
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def rollback(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
     monkeypatch.setattr("app.routes.cerrar_y_render", lambda cur, conn, msg: msg)
@@ -295,12 +313,16 @@ def test_salida_supervisor_sin_entrada(client, monkeypatch, supervisor_usuario):
                 return {"documento": "456"}
             if "asistencia" in self.query:
                 return None
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def rollback(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
     monkeypatch.setattr("app.routes.cerrar_y_render", lambda cur, conn, msg: msg)
@@ -367,11 +389,14 @@ def test_ver_retrasos_supervisor_no_encontrado(client, monkeypatch, supervisor_u
         def fetchone(self):
             if "supervisor" in self.query:
                 return None
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+        pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -413,11 +438,15 @@ def test_ver_empleados_asignados_no_supervisor(client, monkeypatch, supervisor_u
         def fetchall(self):
             return []
 
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -430,12 +459,16 @@ def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
         def execute(self, query, params): pass
         def fetchall(self): return []
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -453,12 +486,16 @@ def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usu
     class MockCursor:
         def execute(self, query, params): pass
         def fetchall(self): return []
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -512,12 +549,16 @@ def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
                 ]
             return []
 
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -538,11 +579,15 @@ def test_asignar_y_gestionar_get(client, monkeypatch, admin_usuario):
             return [
                 (1, 'Carlos', 'Gomez', 10, 'Juan', 'Perez')
             ]
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -558,12 +603,16 @@ def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usu
             return [
                 (1, 'Juan', 'Perez', '08:00', '17:00', 'lmv')
             ]
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -585,11 +634,15 @@ def test_asignar_y_gestionar_horarios_get(client, monkeypatch, admin_usuario):
             return [
                 (1, 'Juan', 'Perez', '08:00', '17:00', 'lmv')
             ]
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -635,12 +688,16 @@ def test_revisar_tiempo_extra_post_aprobar(client, monkeypatch, supervisor_usuar
             return [
                 (1, 'Juan', 'Perez', '2024-05-01', '18:00', '20:00', 'Motivo urgente', None, 'Pendiente')
             ]
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
