@@ -266,7 +266,9 @@ def test_salida_supervisor_exito(client, monkeypatch, supervisor_usuario):
         def commit(self): 
             # Este es un método mock para pruebas; no se necesita un commit real.
             pass
-        def rollback(self): pass
+        def rollback(self): 
+            # Este es un método mock para pruebas; no se necesita rollback real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -293,7 +295,9 @@ def test_salida_supervisor_pin_invalido(client, monkeypatch, supervisor_usuario)
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def rollback(self): pass
+        def rollback(self): 
+            # Este es un método mock para pruebas; no se necesita rollback real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -323,7 +327,9 @@ def test_salida_supervisor_sin_entrada(client, monkeypatch, supervisor_usuario):
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def rollback(self): pass
+        def rollback(self): 
+            # Este es un método mock para pruebas; no se necesita rollback real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
