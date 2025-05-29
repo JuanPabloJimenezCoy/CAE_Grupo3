@@ -595,7 +595,9 @@ def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
 
 def test_asignar_y_gestionar_get(client, monkeypatch, admin_usuario):
     class MockCursor:
-        def execute(self, query, params=None): pass
+        def execute(self, query, params=None):
+            # Este es un método mock para pruebas; no ejecuta consultas reales a la base de datos.
+            pass
         def fetchall(self):
             return [
                 (1, 'Carlos', 'Gomez', 10, 'Juan', 'Perez')
@@ -654,7 +656,9 @@ def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usu
 
 def test_asignar_y_gestionar_horarios_get(client, monkeypatch, admin_usuario):
     class MockCursor:
-        def execute(self, query, params=None): pass
+        def execute(self, query, params=None): 
+            # Este es un método mock para pruebas; no ejecuta consultas reales a la base de datos.
+            pass
         def fetchall(self):
             return [
                 (1, 'Juan', 'Perez', '08:00', '17:00', 'lmv')
