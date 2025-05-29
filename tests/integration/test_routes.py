@@ -118,12 +118,16 @@ def test_entrada_supervisor_exito(client, monkeypatch, supervisor_usuario):
             if "supervisor" in self.query:
                 return {"documento": "456"}
             return None
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
         def commit(self): pass
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
@@ -138,7 +142,9 @@ def test_entrada_supervisor_ya_registrada(client, monkeypatch, supervisor_usuari
     class MockCursor:
         def execute(self, query, params): self.query = query
         def fetchone(self): return (1,)
-        def close(self): pass
+        def close(self): 
+            # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
+            pass
 
     class MockConn:
         def cursor(self): return MockCursor()
