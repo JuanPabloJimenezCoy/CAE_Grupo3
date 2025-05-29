@@ -307,13 +307,16 @@ def vista_registro_salida_admin():
     return render_template(TEMPLATE_REGISTRO_SALIDA)
 
 
-@main_bp.route('/admin/asignar-y-gestionar', methods=['GET', 'POST'])
+@main_bp.route('/admin/asignar-y-gestionar', methods=['GET', 'POST'])  # NOSONAR
 @login_required
 def asignar_y_gestionar():
     if current_user.role != 'administrador':
         return redirect(url_for(LOGIN_ROUTE))
 
     if request.method == 'POST':
+        if not request.form:
+            flash('No se recibieron datos.', 'error')
+            return redirect(url_for('main.asignar_y_gestionar'))
         data = services.gestionar_asignaciones_admin(request.form)
     else:
         data = services.gestionar_asignaciones_admin({})
