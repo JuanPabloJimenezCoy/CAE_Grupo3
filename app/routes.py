@@ -378,7 +378,7 @@ def ver_mi_qr():
     return render_template(TEMPLATE_MI_QR, qr_base64=qr_base64, documento=documento)
 
 
-@main_bp.route('/admin/asignar-y-gestionar-horarios', methods=['GET', 'POST'])
+@main_bp.route('/admin/asignar-y-gestionar-horarios', methods=['GET', 'POST'])  # NOSONAR
 @login_required
 def asignar_y_gestionar_horarios():
     from .database import get_connection
