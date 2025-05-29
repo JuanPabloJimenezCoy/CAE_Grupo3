@@ -405,8 +405,9 @@ def test_ver_retrasos_supervisor_no_encontrado(client, monkeypatch, supervisor_u
 
     class MockConn:
         def cursor(self): return MockCursor()
+        def close(self):
         # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
-        pass
+            pass
 
     monkeypatch.setattr("app.routes.get_connection", lambda: MockConn())
 
