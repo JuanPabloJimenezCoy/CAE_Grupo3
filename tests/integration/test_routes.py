@@ -468,7 +468,9 @@ def test_ver_empleados_asignados_no_supervisor(client, monkeypatch, supervisor_u
 
 def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
-        def execute(self, query, params): pass
+        def execute(self, query, params): 
+            # Este es un método mock para pruebas; no ejecuta consultas reales.
+            pass
         def fetchall(self): return []
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
@@ -497,7 +499,9 @@ def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
 
 def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
-        def execute(self, query, params): pass
+        def execute(self, query, params): 
+            # Este es un método mock para pruebas; no ejecuta consultas reales.
+            pass
         def fetchall(self): return []
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
@@ -615,7 +619,9 @@ def test_asignar_y_gestionar_get(client, monkeypatch, admin_usuario):
 
 def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usuario):
     class MockCursor:
-        def execute(self, query, params): pass
+        def execute(self, query, params): 
+            # Este es un método mock para pruebas; no ejecuta consultas reales.
+            pass
         def fetchall(self):
             return [
                 (1, 'Juan', 'Perez', '08:00', '17:00', 'lmv')
@@ -702,7 +708,9 @@ def test_revisar_tiempo_extra_get(client, monkeypatch, supervisor_usuario):
 
 def test_revisar_tiempo_extra_post_aprobar(client, monkeypatch, supervisor_usuario):
     class MockCursor:
-        def execute(self, query, params): pass
+        def execute(self, query, params): 
+            # Este es un método mock para pruebas; no ejecuta consultas reales.
+            pass
         def fetchall(self):
             return [
                 (1, 'Juan', 'Perez', '2024-05-01', '18:00', '20:00', 'Motivo urgente', None, 'Pendiente')
