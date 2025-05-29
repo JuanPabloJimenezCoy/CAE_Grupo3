@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.6](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.15.5...v2.15.6) (2025-05-29)
+
+
+### Bug Fixes
+
+* update test_routes.py ([7539c7b](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/commit/7539c7b2314059f86ff34269d2860c57aeb5593f))
+
 ## [2.15.5](https://github.com/JuanPabloJimenezCoy/CAE_Grupo3/compare/v2.15.4...v2.15.5) (2025-05-29)
 
 
