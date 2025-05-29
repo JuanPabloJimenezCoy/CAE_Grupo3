@@ -124,7 +124,9 @@ def test_entrada_supervisor_exito(client, monkeypatch, supervisor_usuario):
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -261,7 +263,9 @@ def test_salida_supervisor_exito(client, monkeypatch, supervisor_usuario):
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def rollback(self): pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
@@ -465,7 +469,9 @@ def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -492,7 +498,9 @@ def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usu
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -555,7 +563,9 @@ def test_asignar_y_gestionar_post_valido(client, monkeypatch, admin_usuario):
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -609,7 +619,9 @@ def test_asignar_y_gestionar_horarios_post_valido(client, monkeypatch, admin_usu
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
@@ -694,7 +706,9 @@ def test_revisar_tiempo_extra_post_aprobar(client, monkeypatch, supervisor_usuar
 
     class MockConn:
         def cursor(self): return MockCursor()
-        def commit(self): pass
+        def commit(self): 
+            # Este es un método mock para pruebas; no se necesita un commit real.
+            pass
         def close(self): 
             # Este método está vacío intencionalmente porque la clase base no necesita acciones de cierre.
             pass
